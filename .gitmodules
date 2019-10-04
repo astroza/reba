@@ -1,0 +1,10 @@
+[submodule "deps/nghttp2"]
+	path = deps/nghttp2
+	url = git@github.com:nghttp2/nghttp2.git
+        branch = v1.39.x
+[submodule "deps/llhttp"]
+	path = deps/llhttp
+	url = https://github.com/nodejs/llhttp
+[submodule "deps/v8"]
+	path = deps/v8
+	url = https://chromium.googlesource.com/v8/v8.git
