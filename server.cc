@@ -6,6 +6,7 @@
 #include <iostream>
 #include <memory>
 #include <nghttp2/nghttp2.h>
+#include <llhttp.h>
 
 using boost::asio::ip::tcp;
 
