@@ -13,6 +13,8 @@ option(ENABLE_EXAMPLES OFF)
 add_subdirectory(deps/nghttp2)
 
 set(Boost_USE_STATIC_LIBS        OFF)
+# https://github.com/boostorg/boost_install/issues/13
+set(Boost_NO_BOOST_CMAKE         ON)
 set(Boost_USE_DEBUG_LIBS         ON)
 add_executable(lake ${SOURCE_FILES})
 add_dependencies(lake llhttp)
