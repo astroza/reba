@@ -1,14 +1,14 @@
 #include <session.h>
 #include <iostream>
 
-void Session::upgrade(Protocol *newProtocol)
+void Session::upgrade(Protocol *new_protocol)
 {
-    currentProtocol = std::unique_ptr<Protocol>(newProtocol);
+    current_protocol = std::unique_ptr<Protocol>(new_protocol);
 }
 
 Protocol *Session::getCurrentProtocol()
 {
-    return currentProtocol.get();
+    return current_protocol.get();
 }
 
 void Session::launch()
@@ -16,7 +16,7 @@ void Session::launch()
     auto self(shared_from_this());
     boost::asio::spawn(strand,
                        [this, self](boost::asio::yield_context yield) {
-                           auto request = currentProtocol->get_request(socket, yield);
+                           auto request = current_protocol->get_request(socket, yield);
                            std::cout << "REQUEST" << std::endl;
                            socket.close();
                        });

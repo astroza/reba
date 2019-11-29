@@ -22,9 +22,7 @@ int main(int argc, char *argv[])
 		boost::asio::io_context io_context;
 		boost::asio::spawn(io_context,
 						   [&](boost::asio::yield_context yield) {
-							   tcp::acceptor acceptor(io_context,
-													  tcp::endpoint(tcp::v4(), std::atoi(argv[1])));
-
+							   tcp::acceptor acceptor(io_context, tcp::endpoint(tcp::v4(), std::atoi(argv[1])));
 							   do
 							   {
 								   boost::system::error_code ec;
