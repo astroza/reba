@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.15)
 project(Lake CXX)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -O3")
-set(SOURCE_FILES server.cc)
+set(SOURCE_FILES server.cc session.cc http.cc)
 
 add_custom_target(llhttp npm install
 		  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/deps/llhttp
@@ -26,3 +26,4 @@ include_directories(${Boost_INCLUDE_DIRS})
 target_link_libraries(lake ${Boost_LIBRARIES} nghttp2)
 target_link_libraries(lake ${CMAKE_CURRENT_SOURCE_DIR}/deps/llhttp/build/libllhttp.a)
 target_include_directories(lake PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/deps/llhttp/build)
+target_include_directories(lake PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
