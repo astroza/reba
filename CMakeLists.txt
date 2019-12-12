@@ -6,7 +6,7 @@ set(SOURCE_FILES server.cc session.cc http.cc worker.cc worker_group.cc)
 
 add_custom_target(llhttp npm install
 		  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/deps/llhttp
-		  COMMAND make)
+		  COMMAND make CFLAGS=-fPIC)
 
 option(ENABLE_LIB_ONLY ON)
 option(ENABLE_EXAMPLES OFF)
@@ -24,6 +24,7 @@ if(!Boost_FOUND)
 endif()
 include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/deps/v8/include)
+target_link_libraries(lake pthread)
 target_link_libraries(lake ${Boost_LIBRARIES} nghttp2)
 target_link_libraries(lake ${CMAKE_CURRENT_SOURCE_DIR}/deps/llhttp/build/libllhttp.a)
 target_link_libraries(lake ${CMAKE_CURRENT_SOURCE_DIR}/deps/v8/out.gn/x64.release/obj/libv8_libplatform.a)
