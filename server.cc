@@ -7,10 +7,13 @@
 #include <http.h>
 #include <session.h>
 
+#include <worker_group.h>
+
 using boost::asio::ip::tcp;
 
 int main(int argc, char *argv[])
 {
+	WorkerGroup gw("");
 	try
 	{
 		if (argc != 2)
