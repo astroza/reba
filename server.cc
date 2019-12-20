@@ -13,7 +13,8 @@ using boost::asio::ip::tcp;
 
 int main(int argc, char *argv[])
 {
-	WorkerGroup gw("");
+	V8Global v8_global;
+	WorkerGroup gw(v8_global, std::string("'Hola'"));
 	try
 	{
 		if (argc != 2)

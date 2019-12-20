@@ -11,10 +11,10 @@ class Worker;
 
 class WorkerGroup : boost::thread_group {
 public:
-    WorkerGroup(std::shared_ptr<v8::Platform> platform, std::string script);
+    WorkerGroup(V8Global &v8_global, std::string script_source);
     boost::asio::io_context io_context;
-    std::shared_ptr<V8Global> v8_global;
-    v8::Local<v8::Script> script;
+    V8Global &v8_global;
+    std::string script_source;
 };
 
 #endif
