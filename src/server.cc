@@ -14,7 +14,7 @@ using boost::asio::ip::tcp;
 int main(int argc, char *argv[])
 {
 	V8Global v8_global;
-	WorkerGroup gw(v8_global, std::string("'Hola'"));
+	WorkerGroup gw(v8_global, "print('Hola 1');\r\nasync function test() { print('Hola 2'); }\r\ntest();");
 	try
 	{
 		if (argc != 2)

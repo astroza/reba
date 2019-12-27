@@ -1,6 +1,8 @@
 #include <iostream>
+#include <lake.h>
 #include <worker_group.h>
 #include <worker.h>
+
 
 bool report_exceptions = true;
 bool print_result = true;
@@ -65,7 +67,7 @@ void Worker::main_loop()
     {
         v8::Isolate::Scope isolate_scope(isolate);
         v8::HandleScope handle_scope(isolate);
-        v8::Local<v8::Context> context = v8::Context::New(isolate);
+        v8::Local<v8::Context> context = lake::create_context(isolate);
         v8::Context::Scope context_scope(context);
 
         v8::TryCatch try_catch(isolate);
