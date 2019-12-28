@@ -9,10 +9,10 @@ class WorkerGroup;
 
 class Worker : boost::thread {
 public:
-    Worker(WorkerGroup &wg);
+    Worker(WorkerGroup *wg);
     void main_loop();
 private:
-    WorkerGroup &worker_group;
+    WorkerGroup *worker_group;
     boost::asio::executor_work_guard<boost::asio::io_context::executor_type> keep_running;
 };
 

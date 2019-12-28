@@ -3,7 +3,6 @@
 #include <worker_group.h>
 #include <worker.h>
 
-
 bool report_exceptions = true;
 bool print_result = true;
 
@@ -55,7 +54,7 @@ void ReportException(v8::Isolate* isolate, v8::TryCatch* try_catch) {
   }
 }
 
-Worker::Worker(WorkerGroup &worker_group) : worker_group(worker_group), keep_running(boost::asio::make_work_guard(worker_group.io_context))
+Worker::Worker(WorkerGroup *worker_group) : worker_group(worker_group), keep_running(boost::asio::make_work_guard(worker_group->io_context))
 {
     thread(&Worker::main_loop, this);
     detach();
@@ -63,11 +62,14 @@ Worker::Worker(WorkerGroup &worker_group) : worker_group(worker_group), keep_run
 
 void Worker::main_loop()
 {
-    v8::Isolate *isolate = v8::Isolate::New(worker_group.v8_global.create_params);
+    std::cout << "2: " << worker_group->script_source << std::endl;
+    v8::Isolate *isolate = v8::Isolate::New(worker_group->v8_global.create_params);
+    std::cout << "2.5: " << worker_group->script_source << std::endl;
     {
+      std::cout << "3: " << worker_group->script_source << std::endl;
         v8::Isolate::Scope isolate_scope(isolate);
         v8::HandleScope handle_scope(isolate);
-        v8::Local<v8::Context> context = lake::create_context(isolate);
+        v8::Local<v8::Context> context = lake::create_context(isolate, worker_group->privileged);
         v8::Context::Scope context_scope(context);
 
         v8::TryCatch try_catch(isolate);
@@ -78,7 +80,8 @@ void Worker::main_loop()
         
         v8::Local<v8::Script> script;
         v8::Local<v8::String> source;
-        v8::String::NewFromUtf8(isolate, worker_group.script_source.c_str(), v8::NewStringType::kNormal, static_cast<int>(worker_group.script_source.size())).ToLocal(&source);
+        std::cout << worker_group->script_source << std::endl;
+        v8::String::NewFromUtf8(isolate, worker_group->script_source.c_str(), v8::NewStringType::kNormal, static_cast<int>(worker_group->script_source.size())).ToLocal(&source);
         std::cout << "Compiling" << std::endl;
         if (!v8::Script::Compile(context, source, &origin).ToLocal(&script))
         {
@@ -121,10 +124,10 @@ void Worker::main_loop()
             }
         }
     }
-    while (worker_group.io_context.run_one() > 0)
+    while (worker_group->io_context.run_one() > 0)
     {
         std::cout << "run once" << std::endl;
-        while (v8::platform::PumpMessageLoop(worker_group.v8_global.platform.get(), isolate))
+        while (v8::platform::PumpMessageLoop(worker_group->v8_global.platform.get(), isolate))
             continue;
         std::cout << "pass pump" << std::endl;
     }
