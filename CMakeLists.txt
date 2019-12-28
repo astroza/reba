@@ -19,6 +19,10 @@ add_custom_target(llhttp npm install
 		  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/deps/llhttp
 		  COMMAND make CFLAGS=-fPIC)
 
+add_custom_target(libv8_build
+                  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tools
+                  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tools/build_v8.sh)
+
 option(ENABLE_LIB_ONLY ON)
 option(ENABLE_EXAMPLES OFF)
 # add_subdirectory(deps/nghttp2)
@@ -29,6 +33,7 @@ set(Boost_NO_BOOST_CMAKE         ON)
 set(Boost_USE_DEBUG_LIBS         ON)
 add_executable(lake ${SOURCE_FILES})
 add_dependencies(lake llhttp)
+add_dependencies(lake libv8_build)
 find_package(Boost 1.70.0 COMPONENTS system coroutine thread)
 if(!Boost_FOUND)
   message(SEND_ERROR "Boost needed to build Lake")
