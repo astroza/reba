@@ -3,7 +3,7 @@
 V8Global::V8Global()
 {
     v8::V8::InitializeICUDefaultLocation("lake");
-    v8::V8::InitializeExternalStartupData("lake");
+    v8::V8::InitializeExternalStartupData("snapshot_blob.bin");
     this->platform = v8::platform::NewDefaultPlatform();
     v8::V8::InitializePlatform(this->platform.get());
     v8::V8::Initialize();

@@ -8,13 +8,28 @@
 #include <session.h>
 
 #include <worker_group.h>
-
+#include <unistd.h>
 using boost::asio::ip::tcp;
 
+void a(std::string s) {
+	std::cout << s.size();
+}
 int main(int argc, char *argv[])
 {
+	std::string src("console_log(console_log);");
+	std::string src4("console_log(console_log);");
+	char src2[] = "console_log(console_log);";
 	V8Global v8_global;
-	WorkerGroup gw(v8_global, "print('Hola 1');\r\nasync function test() { print('Hola 2'); }\r\ntest();");
+	a(src);
+	WorkerGroup *gw = new WorkerGroup(v8_global, std::string(src2));
+	std::string src3("console_log(console_log);");
+	//a(src3);
+	sleep(5);
+	std::cout << "heap4: " << src4 << std::endl;
+	std::cout << "heap: " << src << std::endl;
+	std::cout << "stack: " << src2 << std::endl;
+	std::cout << "heap 2: " << src3 << std::endl;
+	std::cout << "heap 2: " << src3 << std::endl;
 	try
 	{
 		if (argc != 2)

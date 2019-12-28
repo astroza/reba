@@ -1,3 +1,5 @@
+#ifndef __V8_GLOBAL_H__
+#define __V8_GLOBAL_H__
 #include <v8.h>
 #include <libplatform/libplatform.h>
 
@@ -8,3 +10,5 @@ struct V8Global {
     V8Global();
     ~V8Global();
 };
+
+#endif
