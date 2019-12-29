@@ -40,7 +40,7 @@ target_link_libraries(lake ${Boost_LIBRARIES})
 target_link_libraries(lake ${CMAKE_CURRENT_SOURCE_DIR}/deps/llhttp/build/libllhttp.a)
 if(APPLE)
 elseif(UNIX)
-	target_link_options(lake PRIVATE -pie -Wl,--fatal-warnings -fPIC -Wl,-z,noexecstack -Wl,-z,relro -Wl,-z,now -Wl,-z,defs -Wl,--as-needed  -m64 -Werror -rdynamic --sysroot=${CMAKE_CURRENT_SOURCE_DIR}/deps/v8/build/linux/debian_sid_amd64-sysroot -L${CMAKE_CURRENT_SOURCE_DIR}/deps/v8/build/linux/debian_sid_amd64-sysroot/usr/local/lib/x86_64-linux-gnu -L${CMAKE_CURRENT_SOURCE_DIR}/deps/v8/build/linux/debian_sid_amd64-sysroot/lib/x86_64-linux-gnu -L${CMAKE_CURRENT_SOURCE_DIR}/deps/v8/build/linux/debian_sid_amd64-sysroot/usr/lib/x86_64-linux-gnu -pie -Wl,--disable-new-dtags -Wl,-O2 -Wl,--gc-sections)
+	target_link_options(lake PRIVATE -fuse-ld=lld -pie -Wl,--fatal-warnings -fPIC -Wl,-z,noexecstack -Wl,-z,relro -Wl,-z,now -Wl,-z,defs -Wl,--as-needed -m64 -Werror -rdynamic --sysroot=${CMAKE_CURRENT_SOURCE_DIR}/deps/v8/build/linux/debian_sid_amd64-sysroot -L${CMAKE_CURRENT_SOURCE_DIR}/deps/v8/build/linux/debian_sid_amd64-sysroot/usr/local/lib/x86_64-linux-gnu -L${CMAKE_CURRENT_SOURCE_DIR}/deps/v8/build/linux/debian_sid_amd64-sysroot/lib/x86_64-linux-gnu -L${CMAKE_CURRENT_SOURCE_DIR}/deps/v8/build/linux/debian_sid_amd64-sysroot/usr/lib/x86_64-linux-gnu -pie -Wl,--disable-new-dtags -Wl,-O2 -Wl,--gc-sections)
 endif()
 add_library(libv8 OBJECT IMPORTED)
 list(APPEND libv8_objs
