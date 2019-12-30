@@ -12,10 +12,10 @@ void log(const v8::FunctionCallbackInfo<v8::Value> &args)
 	{
 		v8::HandleScope handle_scope(args.GetIsolate());
 		v8::String::Utf8Value str(args.GetIsolate(), args[i]);
-		//if (*str)
-		//{
-			// std::cout << "OUT: " << *str;
-		//}
+		if (*str)
+		{
+			std::cout << *str;
+		}
 	}
 	std::cout << std::endl;
 }
