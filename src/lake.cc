@@ -30,15 +30,39 @@ void v8_destroy()
     delete v8_create_params.array_buffer_allocator;
 }
 
-ObjWrap::ObjWrap(v8::Isolate *isolate, v8::Local<v8::Object> handle)
+NativeBind::NativeBind(v8::Isolate *isolate, v8::Local<v8::Object> handle, void *obj)
 {
     handle->SetAlignedPointerInInternalField(0, this);
     persistent_handle->Reset(isolate, handle);
-    persistent_handle->SetWeak(this, weak_callback, v8::WeakCallbackType::kParameter);
+    native_obj = obj;
+    refCount = 1;
+    unref();
+    
 }
 
-static void ObjWrap::weak_callback(const v8::WeakCallbackInfo<ObjWrap> &data)
+void NativeBind::ref()
 {
+    refCount++;
+    persistent_handle->ClearWeak();
+}
+
+void NativeBind::unref()
+{
+    refCount--;
+    if(refCount == 0) {
+        persistent_handle->SetWeak(this, weak_callback, v8::WeakCallbackType::kParameter);
+    }
+}
+
+void *NativeBind::get_native_obj() {
+    return native_obj;
+}
+
+static void NativeBind::weak_callback(const v8::WeakCallbackInfo<NativeBind> &data)
+{
+    NativeBind *native_bind = data.getParameter();
+    delete native_bind->get_obj();
+    delete native_bind;
 }
 
 } // namespace lake
