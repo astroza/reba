@@ -1,4 +1,5 @@
 #include <lake.h>
+#include <lakeapi.h>
 
 namespace lakeapi
 {

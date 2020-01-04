@@ -6,25 +6,33 @@
 
 namespace lake
 {
+extern std::unique_ptr<v8::Platform> v8_platform;
+extern v8::Isolate::CreateParams v8_create_params;
+
 v8::Local<v8::Context> create_context(v8::Isolate *isolate, bool privileged);
 void v8_init();
 void v8_destroy();
-std::unique_ptr<v8::Platform> v8_platform;
-v8::Isolate::CreateParams v8_create_params;
 
 class NativeBind
 {
 public:
-    NativeBind(v8::Isolate *isolate, v8::Local<v8::Object> handle, void *obj);
+    NativeBind(v8::Isolate *isolate, v8::Local<v8::Object> handle, void *obj, void (*delete_callback)(void *));
     void ref();
     void unref();
-    void *get_obj();
+    void *get_native_obj();
 private:
+    unsigned int refCount;
     void *native_obj;
+    void (*native_delete_callback)(void *);
     v8::Persistent<v8::Object> persistent_handle;
-    static void weak_callback(const v8::WeakCallbackInfo<ObjWrap> &data);
-}
+    static void weak_callback(const v8::WeakCallbackInfo<NativeBind> &data);
+};
 
+template<class T>
+void NativeBindDeleteCallback(void *obj) {
+    T *_obj = static_cast<T *>(obj);
+    delete _obj;
+}
 } // namespace lake
 
 #endif

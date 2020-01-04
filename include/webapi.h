@@ -1,7 +1,7 @@
 #ifndef __WEBAPI_H__
 #define __WEBAPI_H__
 
-#include <v8_global.h>
+#include <lake.h>
 
 namespace webapi
 {

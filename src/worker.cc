@@ -62,7 +62,7 @@ Worker::Worker(WorkerGroup *worker_group) : worker_group(worker_group), keep_run
 
 void Worker::main_loop()
 {
-    v8::Isolate *isolate = v8::Isolate::New(lake::create_params);
+    v8::Isolate *isolate = v8::Isolate::New(lake::v8_create_params);
     {
         v8::Isolate::Scope isolate_scope(isolate);
         v8::HandleScope handle_scope(isolate);
