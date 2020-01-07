@@ -52,9 +52,11 @@ void NativeBind::ref()
 
 void NativeBind::unref()
 {
-    refCount--;
-    if(refCount == 0) {
-        persistent_handle.SetWeak(this, weak_callback, v8::WeakCallbackType::kParameter);
+    if(refCount) {
+        refCount--;
+        if(refCount == 0) {
+            persistent_handle.SetWeak(this, weak_callback, v8::WeakCallbackType::kParameter);
+        }
     }
 }
 

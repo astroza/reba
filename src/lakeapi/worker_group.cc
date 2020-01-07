@@ -10,14 +10,11 @@ namespace worker_group
 void constructor(const v8::FunctionCallbackInfo<v8::Value> &args)
 {
     v8::Isolate *isolate = args.GetIsolate();
-    std::cout << "A" << std::endl;
-    //if (!args.IsConstructCall()) {
-      //  std::cout << "B" << std::endl;
-       // isolate->ThrowException(v8::String::NewFromUtf8(isolate, "Function is a constructor", v8::NewStringType::kNormal).ToLocalChecked());
-        //return;
-    //}
+    if (!args.IsConstructCall()) {
+       isolate->ThrowException(v8::String::NewFromUtf8(isolate, "Function is a constructor", v8::NewStringType::kNormal).ToLocalChecked());
+        return;
+    }
     v8::HandleScope handle_scope(isolate);
-    std::cout << "C" << std::endl;
     v8::String::Utf8Value script(isolate, args[0]);
     WorkerGroup *worker_group = new WorkerGroup(std::string(*script), false);
     new lake::NativeBind(isolate, args.This(), worker_group, lake::NativeBindDeleteCallback<WorkerGroup>);
