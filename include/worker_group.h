@@ -12,7 +12,6 @@ class Worker;
 class WorkerGroup : boost::thread_group {
 public:
     WorkerGroup(std::string script_source, bool privileged = false);
-    boost::asio::io_context io_context;
     std::string script_source;
     bool privileged;
 };

@@ -54,7 +54,7 @@ void ReportException(v8::Isolate* isolate, v8::TryCatch* try_catch) {
   }
 }
 
-Worker::Worker(WorkerGroup *worker_group) : worker_group(worker_group), keep_running(boost::asio::make_work_guard(worker_group->io_context))
+Worker::Worker(WorkerGroup *worker_group) : worker_group(worker_group), keep_running(boost::asio::make_work_guard(io_context))
 {
     thread(&Worker::main_loop, this);
     detach();
@@ -68,7 +68,7 @@ void Worker::main_loop()
         v8::HandleScope handle_scope(isolate);
         v8::Local<v8::Context> context = lake::create_context(isolate, worker_group->privileged);
         v8::Context::Scope context_scope(context);
-
+        isolate->SetData(0, this);
         v8::TryCatch try_catch(isolate);
         v8::Local<v8::String> script_name =
         v8::String::NewFromUtf8(isolate, "worker.js",
@@ -116,11 +116,10 @@ void Worker::main_loop()
                     std::cout << "Pre print" << std::endl;
                     printf("%s\n", cstr);
                 }
-                return;
             }
         }
     }
-    while (worker_group->io_context.run_one() > 0)
+    while (io_context.run_one() > 0)
     {
         std::cout << "run once" << std::endl;
         while (v8::platform::PumpMessageLoop(lake::v8_platform.get(), isolate))

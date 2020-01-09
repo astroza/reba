@@ -11,6 +11,7 @@ class Worker : boost::thread {
 public:
     Worker(WorkerGroup *wg);
     void main_loop();
+    boost::asio::io_context io_context;
 private:
     WorkerGroup *worker_group;
     boost::asio::executor_work_guard<boost::asio::io_context::executor_type> keep_running;
