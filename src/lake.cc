@@ -72,4 +72,7 @@ void NativeBind::weak_callback(const v8::WeakCallbackInfo<NativeBind> &data)
     delete native_bind;
 }
 
+v8::Local<v8::Object> NativeBind::get_obj(v8::Isolate *isolate) {
+    return persistent_handle.Get(isolate);
+}
 } // namespace lake

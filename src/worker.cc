@@ -54,13 +54,26 @@ void ReportException(v8::Isolate* isolate, v8::TryCatch* try_catch) {
   }
 }
 
+// it must be called after root HandleScope creation
+void Worker::init_api_private_keys(v8::Isolate *isolate) 
+{
+  api_private_keys[WorkerAPIPrivateKeyIndex::TIMER_CALLBACK] = v8::Private::ForApi(isolate, 
+  v8::String::NewFromUtf8(isolate, "timer::callback").ToLocalChecked());
+}
+
+v8::MaybeLocal<v8::Private> Worker::get_api_private_key(WorkerAPIPrivateKeyIndex idx)
+{
+  assert(idx < WorkerAPIPrivateKeyIndex::MAX);
+  return api_private_keys[idx];
+}
+
 Worker::Worker(WorkerGroup *worker_group) : worker_group(worker_group), keep_running(boost::asio::make_work_guard(io_context))
 {
-    thread(&Worker::main_loop, this);
+    thread(&Worker::run, this);
     detach();
 }
 
-void Worker::main_loop()
+void Worker::run()
 {
     v8::Isolate *isolate = v8::Isolate::New(lake::v8_create_params);
     {
@@ -69,6 +82,8 @@ void Worker::main_loop()
         v8::Local<v8::Context> context = lake::create_context(isolate, worker_group->privileged);
         v8::Context::Scope context_scope(context);
         isolate->SetData(0, this);
+        init_api_private_keys(isolate);
+
         v8::TryCatch try_catch(isolate);
         v8::Local<v8::String> script_name =
         v8::String::NewFromUtf8(isolate, "worker.js",
@@ -118,12 +133,15 @@ void Worker::main_loop()
                 }
             }
         }
-    }
-    while (io_context.run_one() > 0)
-    {
+      ReportException(isolate, &try_catch);
+      while (io_context.run_one() > 0)
+      {
         std::cout << "run once" << std::endl;
         while (v8::platform::PumpMessageLoop(lake::v8_platform.get(), isolate))
             continue;
         std::cout << "pass pump" << std::endl;
+      }
     }
 }
+
+// isolate_->VisitHandlesWithClassIds( &phv );

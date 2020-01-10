@@ -3,6 +3,8 @@
 #include <worker.h>
 
 
+#include <iostream>
+
 namespace webapi
 {
 namespace timer
@@ -10,18 +12,46 @@ namespace timer
 void constructor(const v8::FunctionCallbackInfo<v8::Value> &args)
 {
     v8::Isolate *isolate = args.GetIsolate();
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    Worker *worker;
+    int64_t time_ms = 0;
+    boost::asio::deadline_timer *timer;
+
     if (!args.IsConstructCall()) {
         isolate->ThrowException(v8::String::NewFromUtf8(isolate, "Function is a constructor", v8::NewStringType::kNormal).ToLocalChecked());
         return;
     }
-    Worker *worker = static_cast<Worker *>(isolate->GetData(0));
+
+    if (args.Length() == 0 || !args[0]->IsFunction()) {
+        isolate->ThrowException(v8::String::NewFromUtf8(isolate, "Must specify a callback", v8::NewStringType::kNormal).ToLocalChecked());
+        return;
+    }
+
     v8::HandleScope handle_scope(isolate);
-    v8::String::Utf8Value script(isolate, args[0]);
-    auto timer = new boost::asio::deadline_timer(worker->io_context);
-    timer->expires_from_now(boost::posix_time::milliseconds(5000));
-    timer->async_wait([](const boost::system::error_code& ec)
+    if(args.Length() > 1) {
+        auto time_ms_integer = args[1]->ToInteger(context).ToLocalChecked();
+        time_ms = time_ms_integer->Value();
+    }
+    worker = static_cast<Worker *>(isolate->GetData(0));
+    timer = new boost::asio::deadline_timer(worker->io_context);
+    timer->expires_from_now(boost::posix_time::milliseconds(time_ms));
+    auto callback = args[0];
+    args.This()->SetPrivate(context, worker->get_api_private_key(TIMER_CALLBACK).ToLocalChecked(), callback);
+    auto lake_bind = new lake::NativeBind(isolate, args.This(), timer, lake::NativeBindDeleteCallback<boost::asio::deadline_timer>);
+    lake_bind->ref();
+    timer->async_wait([isolate, worker, lake_bind](const boost::system::error_code& ec)
     {
-        puts("Timer!");
+        v8::HandleScope handle_scope(isolate);
+        v8::TryCatch try_catch(isolate);
+        auto timer_obj = lake_bind->get_obj(isolate);
+        auto callback = timer_obj->GetPrivate(isolate->GetCurrentContext(), worker->get_api_private_key(TIMER_CALLBACK).ToLocalChecked()).ToLocalChecked();
+        auto callback_as_function = v8::Local<v8::Function>::Cast(callback);
+        auto context = isolate->GetCurrentContext();
+        try_catch.SetVerbose(true);
+        if(callback_as_function->IsFunction()) {
+            callback_as_function->Call(context, context->Global(), 0, nullptr);
+        }
+        lake_bind->unref();
     });
     new lake::NativeBind(isolate, args.This(), timer, lake::NativeBindDeleteCallback<boost::asio::deadline_timer>);
 }

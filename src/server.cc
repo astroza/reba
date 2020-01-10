@@ -17,7 +17,7 @@ void a(std::string s) {
 int main(int argc, char *argv[])
 {
 	lake::v8_init();
-	WorkerGroup *gov_worker_group = new WorkerGroup("for(var i = 0; i < 2; i++) new WorkerGroup('log(\"test\");'); var t = new Timer();", true);
+	WorkerGroup *gov_worker_group = new WorkerGroup("function f() { log('Timer!'); }\nvar t = new Timer(f, 3000);", true);
 	try
 	{
 		if (argc != 2)

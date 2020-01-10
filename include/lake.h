@@ -20,6 +20,7 @@ public:
     void ref();
     void unref();
     void *get_native_obj();
+    v8::Local<v8::Object> get_obj(v8::Isolate *isolate);
 private:
     unsigned int refCount;
     void *native_obj;
