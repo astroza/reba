@@ -37,7 +37,7 @@ NativeBind::NativeBind(v8::Isolate *isolate, v8::Local<v8::Object> handle, void 
 {
     handle->SetAlignedPointerInInternalField(0, this);
     persistent_handle.Reset(isolate, handle);
-    native_obj = obj;
+    native_object = obj;
     native_delete_callback = delete_callback;
     refCount = 1;
     unref();
@@ -60,19 +60,19 @@ void NativeBind::unref()
     }
 }
 
-void *NativeBind::get_native_obj() {
-    return native_obj;
+void *NativeBind::get_native_object() {
+    return native_object;
 }
 
 void NativeBind::weak_callback(const v8::WeakCallbackInfo<NativeBind> &data)
 {
     NativeBind *native_bind = data.GetParameter();
-    native_bind->native_delete_callback(native_bind->get_native_obj());
+    native_bind->native_delete_callback(native_bind->get_native_object());
     puts("weak_callback");
     delete native_bind;
 }
 
-v8::Local<v8::Object> NativeBind::get_obj(v8::Isolate *isolate) {
+v8::Local<v8::Object> NativeBind::get_object_handle(v8::Isolate *isolate) {
     return persistent_handle.Get(isolate);
 }
 } // namespace lake

@@ -12,10 +12,6 @@ file(GLOB lakeapi_source ${CMAKE_CURRENT_SOURCE_DIR}/src/lakeapi/*.cc)
 
 set(SOURCE_FILES ${core_source} ${webapi_source} ${lakeapi_source})
 
-add_custom_target(llhttp npm install
-		  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/deps/llhttp
-		  COMMAND make CFLAGS=-fPIC)
-
 add_custom_target(libv8_build
                   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tools
                   COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tools/build_v8.sh)
@@ -28,7 +24,6 @@ set(Boost_USE_STATIC_LIBS        OFF)
 set(Boost_NO_BOOST_CMAKE         ON)
 set(Boost_USE_DEBUG_LIBS         ON)
 add_executable(lake ${SOURCE_FILES})
-add_dependencies(lake llhttp)
 add_dependencies(lake libv8_build)
 find_package(Boost 1.70.0 COMPONENTS system coroutine thread)
 if(!Boost_FOUND)
@@ -37,7 +32,6 @@ endif()
 include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/deps/v8/include)
 target_link_libraries(lake ${Boost_LIBRARIES})
-target_link_libraries(lake ${CMAKE_CURRENT_SOURCE_DIR}/deps/llhttp/build/libllhttp.a)
 if(APPLE)
 elseif(UNIX)
 	target_link_options(lake PRIVATE -fuse-ld=lld -pie -Wl,--fatal-warnings -fPIC -Wl,-z,noexecstack -Wl,-z,relro -Wl,-z,now -Wl,-z,defs -Wl,--as-needed -m64 -Werror -rdynamic --sysroot=${CMAKE_CURRENT_SOURCE_DIR}/deps/v8/build/linux/debian_sid_amd64-sysroot -L${CMAKE_CURRENT_SOURCE_DIR}/deps/v8/build/linux/debian_sid_amd64-sysroot/usr/local/lib/x86_64-linux-gnu -L${CMAKE_CURRENT_SOURCE_DIR}/deps/v8/build/linux/debian_sid_amd64-sysroot/lib/x86_64-linux-gnu -L${CMAKE_CURRENT_SOURCE_DIR}/deps/v8/build/linux/debian_sid_amd64-sysroot/usr/lib/x86_64-linux-gnu -pie -Wl,--disable-new-dtags -Wl,-O2 -Wl,--gc-sections)
@@ -69,5 +63,4 @@ list(TRANSFORM libv8_objs PREPEND ${CMAKE_CURRENT_SOURCE_DIR}/deps/v8/out/x64.re
 
 set_target_properties(libv8 PROPERTIES IMPORTED_OBJECTS "${libv8_objs}")
 target_link_libraries(lake $<TARGET_OBJECTS:libv8>)
-target_include_directories(lake PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/deps/llhttp/build)
 target_include_directories(lake PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)

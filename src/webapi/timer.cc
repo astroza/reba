@@ -35,25 +35,21 @@ void constructor(const v8::FunctionCallbackInfo<v8::Value> &args)
     worker = static_cast<Worker *>(isolate->GetData(0));
     timer = new boost::asio::deadline_timer(worker->io_context);
     timer->expires_from_now(boost::posix_time::milliseconds(time_ms));
-    auto callback = args[0];
-    args.This()->SetPrivate(context, worker->get_api_private_key(TIMER_CALLBACK).ToLocalChecked(), callback);
-    auto lake_bind = new lake::NativeBind(isolate, args.This(), timer, lake::NativeBindDeleteCallback<boost::asio::deadline_timer>);
-    lake_bind->ref();
-    timer->async_wait([isolate, worker, lake_bind](const boost::system::error_code& ec)
+    args.This()->SetPrivate(context, worker->get_api_private_key(TIMER_CALLBACK).ToLocalChecked(), args[0]);
+    auto timer_bind = new lake::NativeBind(isolate, args.This(), timer, lake::NativeBindDeleteCallback<boost::asio::deadline_timer>);
+    timer_bind->ref();
+    timer->async_wait([isolate, worker, timer_bind](const boost::system::error_code& ec)
     {
         v8::HandleScope handle_scope(isolate);
         v8::TryCatch try_catch(isolate);
-        auto timer_obj = lake_bind->get_obj(isolate);
+        auto timer_obj = timer_bind->get_object_handle(isolate);
         auto callback = timer_obj->GetPrivate(isolate->GetCurrentContext(), worker->get_api_private_key(TIMER_CALLBACK).ToLocalChecked()).ToLocalChecked();
         auto callback_as_function = v8::Local<v8::Function>::Cast(callback);
         auto context = isolate->GetCurrentContext();
         try_catch.SetVerbose(true);
-        if(callback_as_function->IsFunction()) {
-            callback_as_function->Call(context, context->Global(), 0, nullptr);
-        }
-        lake_bind->unref();
+        callback_as_function->Call(context, context->Global(), 0, nullptr);
+        timer_bind->unref();
     });
-    new lake::NativeBind(isolate, args.This(), timer, lake::NativeBindDeleteCallback<boost::asio::deadline_timer>);
 }
 
 v8::Local<v8::FunctionTemplate> function_template(v8::Isolate *isolate)

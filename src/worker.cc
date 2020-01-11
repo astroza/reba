@@ -92,7 +92,6 @@ void Worker::run()
         
         v8::Local<v8::Script> script;
         v8::Local<v8::String> source;
-        std::cout << worker_group->script_source << std::endl;
         v8::String::NewFromUtf8(isolate, worker_group->script_source.c_str(), v8::NewStringType::kNormal, static_cast<int>(worker_group->script_source.size())).ToLocal(&source);
         if (!v8::Script::Compile(context, source, &origin).ToLocal(&script))
         {
@@ -103,11 +102,9 @@ void Worker::run()
         }
         else
         {
-            std::cout << "Running" << std::endl;
             v8::Local<v8::Value> result;
             if (!script->Run(context).ToLocal(&result))
             {
-                std::cout << "Exception" << std::endl;
                 assert(try_catch.HasCaught());
                 // Print errors that happened during execution.
                 if (report_exceptions)
@@ -116,19 +113,13 @@ void Worker::run()
             }
             else
             {
-                std::cout << "OK" << std::endl;
                 assert(!try_catch.HasCaught());
-                std::cout << "OK 2" << std::endl;
-                printf("%p\n", result);
                 if (print_result)
                 {
                     // If all went well and the result wasn't undefined then print
                     // the returned value.
-                    std::cout << "pre str" << std::endl;
                     v8::String::Utf8Value str(isolate, result);
-                    std::cout << "toCString" << std::endl;
                     const char *cstr = ToCString(str);
-                    std::cout << "Pre print" << std::endl;
                     printf("%s\n", cstr);
                 }
             }
@@ -136,10 +127,8 @@ void Worker::run()
       ReportException(isolate, &try_catch);
       while (io_context.run_one() > 0)
       {
-        std::cout << "run once" << std::endl;
         while (v8::platform::PumpMessageLoop(lake::v8_platform.get(), isolate))
             continue;
-        std::cout << "pass pump" << std::endl;
       }
     }
 }

@@ -19,11 +19,11 @@ public:
     NativeBind(v8::Isolate *isolate, v8::Local<v8::Object> handle, void *obj, void (*delete_callback)(void *));
     void ref();
     void unref();
-    void *get_native_obj();
-    v8::Local<v8::Object> get_obj(v8::Isolate *isolate);
+    void *get_native_object();
+    v8::Local<v8::Object> get_object_handle(v8::Isolate *isolate);
 private:
     unsigned int refCount;
-    void *native_obj;
+    void *native_object;
     void (*native_delete_callback)(void *);
     v8::Persistent<v8::Object> persistent_handle;
     static void weak_callback(const v8::WeakCallbackInfo<NativeBind> &data);
