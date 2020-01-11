@@ -19,7 +19,7 @@ Lake has two essential entities:
 There is a special WorkerGroup created when Lake is started
 * WorkerGroup Zero: It has a privileged context able to create new WorkerGroups and set routes.
 
-The expected behavior of WorkerGroup zero is:
+The expected behavior of WorkerGroup Zero is:
 
 * Connect to a control plane by Fetch API or Websocket
 * Get the configured scripts and routes from the control plane
