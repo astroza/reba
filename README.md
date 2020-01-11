@@ -8,6 +8,7 @@ Lake is a Service Worker subset implementation for running on server side.
 ## Plan
 * Boost Beast HTTP/1.1 Web Server
 * Web Fetch API
+* Websocket support
 * Web Crypto API
 * Basic functions: setTimeout, setInterval
 
