@@ -17,7 +17,7 @@ Lake has two essential entities:
 * WorkerGroup: A group of threads running the same script. It scales itself automatically based on the group's load.
 * Router: A global instance storing the data needed to route an web request to an specific WorkerGroup
 
-There is a special WorkerGroup created when Lake is started
+There is an special WorkerGroup created when Lake is started
 * WorkerGroup Zero: It has a privileged context able to create new WorkerGroups and set routes.
 
 The expected behavior of WorkerGroup Zero is:
