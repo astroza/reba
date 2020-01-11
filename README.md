@@ -2,17 +2,14 @@
 Lake is a Service Worker subset implementation for running on server side.
 
 ## Features
-* Hot reconfiguration by HTTP API
+* Hot reconfiguration by HTTP API: Privileged Isolate to manage WorkerGroups
 * Integrated cache system (?)
-* HTTP/2 support
 
 ## Plan
-* Boost ASIO server
-* llhttp for upgrading from 1.1 to 2
-* HTTP Server with nghttp2
-* Implement C++ classes for Fetch API Service Worker mechanisms
-* V8 integration
-* V8 function and object templates
+* Boost Beast HTTP/1.1 Web Server
+* Web Fetch API
+* Web Crypto API
+* Basic functions: setTimeout, setInterval
 
 ## References
 * https://github.com/w3c/ServiceWorker/blob/master/implementation_considerations.md
