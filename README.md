@@ -1,5 +1,5 @@
 # Lake
-Lake is a Service Worker subset implementation for running on server side.
+Lake is an Service Worker subset implementation for running on server side.
 
 ## Features
 * Hot reconfiguration by HTTP API: Privileged Isolate to manage WorkerGroups
