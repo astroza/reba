@@ -60,5 +60,23 @@ v8::Local<v8::FunctionTemplate> function_template(v8::Isolate *isolate)
     func_tmpl->InstanceTemplate()->SetInternalFieldCount(1); // For native bind
     return handle_scope.Escape(func_tmpl);
 }
+
+void set_timeout(const v8::FunctionCallbackInfo<v8::Value> &args)
+{
+    v8::Isolate *isolate = args.GetIsolate();
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    v8::EscapableHandleScope handle_scope(isolate);
+    auto timer_constructor = context->Global()->Get(context, v8::String::NewFromUtf8(isolate, "Timer", 
+        v8::NewStringType::kNormal).ToLocalChecked()).ToLocalChecked();
+    auto timer_constructor_as_function = v8::Local<v8::Function>::Cast(timer_constructor);
+    int argc = args.Length();
+    v8::Local<v8::Value> *argv = new v8::Local<v8::Value>[argc];
+    for(int i = 0; i < argc; i++) {
+        argv[i] = args[i];
+    }
+    auto timer_instace = timer_constructor_as_function->NewInstance(context, argc, argv);
+    delete[] argv;
+    args.GetReturnValue().Set(handle_scope.EscapeMaybe(timer_instace).ToLocalChecked());
+}
 } // namespace timer
 } // namespace webapi
