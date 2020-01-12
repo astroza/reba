@@ -9,7 +9,7 @@ namespace lake
 extern std::unique_ptr<v8::Platform> v8_platform;
 extern v8::Isolate::CreateParams v8_create_params;
 
-v8::Local<v8::Context> create_context(v8::Isolate *isolate, bool privileged);
+v8::Local<v8::Context> v8_create_context(v8::Isolate *isolate, bool privileged);
 void v8_init();
 void v8_destroy();
 

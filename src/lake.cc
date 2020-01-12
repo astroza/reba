@@ -7,13 +7,19 @@ namespace lake
 std::unique_ptr<v8::Platform> v8_platform;
 v8::Isolate::CreateParams v8_create_params;
 
-v8::Local<v8::Context> create_context(v8::Isolate *isolate, bool privileged)
+v8::Local<v8::Context> v8_create_context(v8::Isolate *isolate, bool privileged)
 {
     v8::Local<v8::ObjectTemplate> global = v8::ObjectTemplate::New(isolate);
     webapi::init_global(isolate, global);
     if (privileged)
     {
         lakeapi::init_global(isolate, global);
+    }
+    webapi::Console *console = static_cast<webapi::Console *>(isolate->GetData(1));
+    if(!console) {
+        console = new webapi::Console(isolate);
+        isolate->SetData(0, console);
+        v8::debug::SetConsoleDelegate(isolate, console);
     }
     return v8::Context::New(isolate, NULL, global);
 }
