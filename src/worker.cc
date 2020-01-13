@@ -1,8 +1,10 @@
 #include <iostream>
-#include <lake.h>
+#include <engine.h>
 #include <worker_group.h>
 #include <worker.h>
 
+namespace lake 
+{
 bool report_exceptions = true;
 bool print_result = true;
 
@@ -85,5 +87,5 @@ void Worker::run()
       }
     }
 }
-
+}
 // isolate_->VisitHandlesWithClassIds( &phv );

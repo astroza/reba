@@ -5,15 +5,18 @@
 #include <boost/thread/thread.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/executor_work_guard.hpp>
-#include <lake.h>
+#include <engine.h>
 
+namespace lake
+{
 class Worker;
 
-class WorkerGroup : boost::thread_group {
+class WorkerGroup : boost::thread_group
+{
 public:
     WorkerGroup(std::string script_source, bool privileged = false);
     std::string script_source;
     bool privileged;
 };
-
+} // namespace lake
 #endif

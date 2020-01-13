@@ -14,7 +14,7 @@ void constructor(const v8::FunctionCallbackInfo<v8::Value> &args)
 {
     v8::Isolate *isolate = args.GetIsolate();
     v8::Local<v8::Context> context = isolate->GetCurrentContext();
-    Worker *worker;
+    lake::Worker *worker;
     int64_t time_ms = 0;
     boost::asio::deadline_timer *timer;
 
@@ -33,10 +33,10 @@ void constructor(const v8::FunctionCallbackInfo<v8::Value> &args)
         auto time_ms_integer = args[1]->ToInteger(context).ToLocalChecked();
         time_ms = time_ms_integer->Value();
     }
-    worker = static_cast<Worker *>(isolate->GetData(0));
+    worker = static_cast<lake::Worker *>(isolate->GetData(0));
     timer = new boost::asio::deadline_timer(worker->io_context);
     timer->expires_from_now(boost::posix_time::milliseconds(time_ms));
-    args.This()->SetPrivate(context, worker->get_api_private_key(TIMER_CALLBACK).ToLocalChecked(), args[0]);
+    args.This()->SetPrivate(context, worker->get_api_private_key(lake::TIMER_CALLBACK).ToLocalChecked(), args[0]);
     auto timer_bind = new lake::engine::NativeBind(isolate, args.This(), timer, lake::engine::NativeBindDeleteCallback<boost::asio::deadline_timer>);
     timer_bind->ref();
     timer->async_wait([isolate, worker, timer_bind](const boost::system::error_code& ec)
@@ -44,7 +44,7 @@ void constructor(const v8::FunctionCallbackInfo<v8::Value> &args)
         v8::HandleScope handle_scope(isolate);
         v8::TryCatch try_catch(isolate);
         auto timer_obj = timer_bind->get_object_handle(isolate);
-        auto callback = timer_obj->GetPrivate(isolate->GetCurrentContext(), worker->get_api_private_key(TIMER_CALLBACK).ToLocalChecked()).ToLocalChecked();
+        auto callback = timer_obj->GetPrivate(isolate->GetCurrentContext(), worker->get_api_private_key(lake::TIMER_CALLBACK).ToLocalChecked()).ToLocalChecked();
         auto callback_as_function = v8::Local<v8::Function>::Cast(callback);
         auto context = isolate->GetCurrentContext();
         try_catch.SetVerbose(true);

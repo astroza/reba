@@ -16,8 +16,8 @@ void constructor(const v8::FunctionCallbackInfo<v8::Value> &args)
     }
     v8::HandleScope handle_scope(isolate);
     v8::String::Utf8Value script(isolate, args[0]);
-    WorkerGroup *worker_group = new WorkerGroup(std::string(*script), false);
-    new lake::engine::NativeBind(isolate, args.This(), worker_group, lake::engine::NativeBindDeleteCallback<WorkerGroup>);
+    auto *worker_group = new lake::WorkerGroup(std::string(*script), false);
+    new lake::engine::NativeBind(isolate, args.This(), worker_group, lake::engine::NativeBindDeleteCallback<lake::WorkerGroup>);
 }
 
 v8::Local<v8::FunctionTemplate> function_template(v8::Isolate *isolate)
