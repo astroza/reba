@@ -469,7 +469,7 @@ int main(int argc, char* argv[])
 		std::cerr << "Usage: lake <governator script file> <port>\n";
 		return 1;
 	}
-	lake::v8_init();
+	lake::engine::init();
 	std::ifstream gov_script_file { argv[1] };
 	std::string gov_script { std::istreambuf_iterator<char>(gov_script_file), std::istreambuf_iterator<char>() };
 	WorkerGroup *gov_worker_group = new WorkerGroup(gov_script, true);

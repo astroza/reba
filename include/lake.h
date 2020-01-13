@@ -6,12 +6,16 @@
 
 namespace lake
 {
-extern std::unique_ptr<v8::Platform> v8_platform;
-extern v8::Isolate::CreateParams v8_create_params;
+namespace engine
+{
+extern std::unique_ptr<v8::Platform> platform;
+extern v8::Isolate::CreateParams create_params;
 
-v8::Local<v8::Context> v8_create_context(v8::Isolate *isolate, bool privileged);
-void v8_init();
-void v8_destroy();
+v8::Local<v8::Context> create_context(v8::Isolate *isolate, bool privileged);
+void init();
+void destroy();
+const char* utf8_value_to_cstring(const v8::String::Utf8Value& value);
+void report_exception(v8::Isolate* isolate, v8::TryCatch* try_catch);
 
 class NativeBind
 {
@@ -34,6 +38,7 @@ void NativeBindDeleteCallback(void *obj) {
     T *_obj = static_cast<T *>(obj);
     delete _obj;
 }
+} // namespace engine
 } // namespace lake
 
 #endif

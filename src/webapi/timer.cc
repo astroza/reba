@@ -2,8 +2,9 @@
 #include <webapi.h>
 #include <worker.h>
 
-
 #include <iostream>
+
+#define MAX_SET_TIMEOUT_ARGC 16
 
 namespace webapi
 {
@@ -36,7 +37,7 @@ void constructor(const v8::FunctionCallbackInfo<v8::Value> &args)
     timer = new boost::asio::deadline_timer(worker->io_context);
     timer->expires_from_now(boost::posix_time::milliseconds(time_ms));
     args.This()->SetPrivate(context, worker->get_api_private_key(TIMER_CALLBACK).ToLocalChecked(), args[0]);
-    auto timer_bind = new lake::NativeBind(isolate, args.This(), timer, lake::NativeBindDeleteCallback<boost::asio::deadline_timer>);
+    auto timer_bind = new lake::engine::NativeBind(isolate, args.This(), timer, lake::engine::NativeBindDeleteCallback<boost::asio::deadline_timer>);
     timer_bind->ref();
     timer->async_wait([isolate, worker, timer_bind](const boost::system::error_code& ec)
     {
@@ -69,13 +70,12 @@ void set_timeout(const v8::FunctionCallbackInfo<v8::Value> &args)
     auto timer_constructor = context->Global()->Get(context, v8::String::NewFromUtf8(isolate, "Timer", 
         v8::NewStringType::kNormal).ToLocalChecked()).ToLocalChecked();
     auto timer_constructor_as_function = v8::Local<v8::Function>::Cast(timer_constructor);
-    int argc = args.Length();
-    v8::Local<v8::Value> *argv = new v8::Local<v8::Value>[argc];
+    int argc = std::min(MAX_SET_TIMEOUT_ARGC, args.Length());
+    v8::Local<v8::Value> argv[argc];
     for(int i = 0; i < argc; i++) {
         argv[i] = args[i];
     }
     auto timer_instace = timer_constructor_as_function->NewInstance(context, argc, argv);
-    delete[] argv;
     args.GetReturnValue().Set(handle_scope.EscapeMaybe(timer_instace).ToLocalChecked());
 }
 } // namespace timer

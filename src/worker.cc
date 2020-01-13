@@ -6,54 +6,6 @@
 bool report_exceptions = true;
 bool print_result = true;
 
-// Extracts a C string from a V8 Utf8Value.
-const char* ToCString(const v8::String::Utf8Value& value) {
-  return *value ? *value : "<string conversion failed>";
-}
-
-void ReportException(v8::Isolate* isolate, v8::TryCatch* try_catch) {
-  v8::HandleScope handle_scope(isolate);
-  v8::String::Utf8Value exception(isolate, try_catch->Exception());
-  const char* exception_string = ToCString(exception);
-  v8::Local<v8::Message> message = try_catch->Message();
-  if (message.IsEmpty()) {
-    // V8 didn't provide any extra information about this error; just
-    // print the exception.
-    fprintf(stderr, "%s\n", exception_string);
-  } else {
-    // Print (filename):(line number): (message).
-    v8::String::Utf8Value filename(isolate,
-                                   message->GetScriptOrigin().ResourceName());
-    v8::Local<v8::Context> context(isolate->GetCurrentContext());
-    const char* filename_string = ToCString(filename);
-    int linenum = message->GetLineNumber(context).FromJust();
-    fprintf(stderr, "%s:%i: %s\n", filename_string, linenum, exception_string);
-    // Print line of source code.
-    v8::String::Utf8Value sourceline(
-        isolate, message->GetSourceLine(context).ToLocalChecked());
-    const char* sourceline_string = ToCString(sourceline);
-    fprintf(stderr, "%s\n", sourceline_string);
-    // Print wavy underline (GetUnderline is deprecated).
-    int start = message->GetStartColumn(context).FromJust();
-    for (int i = 0; i < start; i++) {
-      fprintf(stderr, " ");
-    }
-    int end = message->GetEndColumn(context).FromJust();
-    for (int i = start; i < end; i++) {
-      fprintf(stderr, "^");
-    }
-    fprintf(stderr, "\n");
-    v8::Local<v8::Value> stack_trace_string;
-    if (try_catch->StackTrace(context).ToLocal(&stack_trace_string) &&
-        stack_trace_string->IsString() &&
-        v8::Local<v8::String>::Cast(stack_trace_string)->Length() > 0) {
-      v8::String::Utf8Value stack_trace(isolate, stack_trace_string);
-      const char* stack_trace_string = ToCString(stack_trace);
-      fprintf(stderr, "%s\n", stack_trace_string);
-    }
-  }
-}
-
 // it must be called after root HandleScope creation
 void Worker::init_api_private_keys(v8::Isolate *isolate) 
 {
@@ -75,11 +27,11 @@ Worker::Worker(WorkerGroup *worker_group) : worker_group(worker_group), keep_run
 
 void Worker::run()
 {
-    v8::Isolate *isolate = v8::Isolate::New(lake::v8_create_params);
+    v8::Isolate *isolate = v8::Isolate::New(lake::engine::create_params);
     {
         v8::Isolate::Scope isolate_scope(isolate);
         v8::HandleScope handle_scope(isolate);
-        v8::Local<v8::Context> context = lake::v8_create_context(isolate, worker_group->privileged);
+        v8::Local<v8::Context> context = lake::engine::create_context(isolate, worker_group->privileged);
         v8::Context::Scope context_scope(context);
 
         isolate->SetData(0, this);
@@ -98,7 +50,7 @@ void Worker::run()
         {
             // Print errors that happened during compilation.
             if (report_exceptions)
-                ReportException(isolate, &try_catch);
+                lake::engine::report_exception(isolate, &try_catch);
             return;
         }
         else
@@ -109,7 +61,7 @@ void Worker::run()
                 assert(try_catch.HasCaught());
                 // Print errors that happened during execution.
                 if (report_exceptions)
-                    ReportException(isolate, &try_catch);
+                    lake::engine::report_exception(isolate, &try_catch);
                 return;
             }
             else
@@ -120,15 +72,15 @@ void Worker::run()
                     // If all went well and the result wasn't undefined then print
                     // the returned value.
                     v8::String::Utf8Value str(isolate, result);
-                    const char *cstr = ToCString(str);
+                    const char *cstr = lake::engine::utf8_value_to_cstring(str);
                     printf("%s\n", cstr);
                 }
             }
         }
-      ReportException(isolate, &try_catch);
+      lake::engine::report_exception(isolate, &try_catch);
       while (io_context.run_one() > 0)
       {
-        while (v8::platform::PumpMessageLoop(lake::v8_platform.get(), isolate))
+        while (v8::platform::PumpMessageLoop(lake::engine::platform.get(), isolate))
             continue;
       }
     }
