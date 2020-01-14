@@ -11,6 +11,12 @@ namespace worker_group
 void constructor(const v8::FunctionCallbackInfo<v8::Value> &args);
 v8::Local<v8::FunctionTemplate> function_template(v8::Isolate *isolate);
 } // namespace worker_group
+namespace router
+{
+v8::Local<v8::ObjectTemplate> object_template(v8::Isolate *isolate);
+void addHost(const v8::FunctionCallbackInfo<v8::Value> &args);
+void removeHost(const v8::FunctionCallbackInfo<v8::Value> &args);
+}
 } // namespace webapi
 
 #endif

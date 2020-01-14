@@ -178,23 +178,6 @@ public:
         pool_->dealloc();
     }
 
-#if defined(BOOST_LIBSTDCXX_VERSION) && BOOST_LIBSTDCXX_VERSION < 60000
-    template<class U, class... Args>
-    void
-    construct(U* ptr, Args&&... args)
-    {
-        ::new(static_cast<void*>(ptr)) U(
-            std::forward<Args>(args)...);
-    }
-
-    template<class U>
-    void
-    destroy(U* ptr)
-    {
-        ptr->~U();
-    }
-#endif
-
     template<class U>
     friend
     bool
@@ -223,13 +206,13 @@ namespace http = beast::http;           // from <boost/beast/http.hpp>
 namespace net = boost::asio;            // from <boost/asio.hpp>
 using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
-class http_worker
+class HTTPWorker
 {
 public:
-    http_worker(http_worker const&) = delete;
-    http_worker& operator=(http_worker const&) = delete;
+    HTTPWorker(HTTPWorker const&) = delete;
+    HTTPWorker& operator=(HTTPWorker const&) = delete;
 
-    http_worker(tcp::acceptor& acceptor, const std::string& doc_root) :
+    HTTPWorker(tcp::acceptor& acceptor, const std::string& doc_root) :
         acceptor_(acceptor),
         doc_root_(doc_root)
     {
@@ -483,7 +466,7 @@ int main(int argc, char* argv[])
         net::io_context ioc{1};
         tcp::acceptor acceptor{ioc, {address, port}};
 
-        std::list<http_worker> workers;
+        std::list<HTTPWorker> workers;
         for (int i = 0; i < num_workers; ++i)
         {
             workers.emplace_back(acceptor, "test");
