@@ -9,7 +9,7 @@ Router global_router_;
 
 Router::Router(){};
 
-bool Router::addHost(std::string &host, engine::NativeBind *worker_group)
+bool Router::addHost(const std::string &host, engine::NativeBind *worker_group)
 {
     bool new_host = true;
     std::lock_guard<std::mutex> lock(host_map_mutex_);
@@ -23,7 +23,7 @@ bool Router::addHost(std::string &host, engine::NativeBind *worker_group)
     return new_host;
 }
 
-bool Router::removeHost(std::string &host)
+bool Router::removeHost(const std::string &host)
 {
     bool host_found = false;
     std::lock_guard<std::mutex> lock(host_map_mutex_);
@@ -34,6 +34,15 @@ bool Router::removeHost(std::string &host)
         host_found = true;
     }
     return host_found;
+}
+
+engine::NativeBind *Router::route_by_host(const std::string &host) 
+{
+    auto worker_group = host_map_.find(host);
+    if(worker_group != host_map_.end()) {
+        return worker_group->second;
+    }
+    return nullptr;
 }
 
 //engine::NativeBind *Router::route()

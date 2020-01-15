@@ -8,4 +8,9 @@ WorkerGroup::WorkerGroup(std::string script_source, bool privileged) : script_so
 {
     add_thread((boost::thread *)new Worker(this));
 }
+
+void WorkerGroup::enqueue_request() 
+{
+
+}
 } // namespace lake

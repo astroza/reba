@@ -15,6 +15,7 @@ class WorkerGroup : boost::thread_group
 {
 public:
     WorkerGroup(std::string script_source, bool privileged = false);
+    void enqueue_request();
     std::string script_source;
     bool privileged;
 };

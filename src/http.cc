@@ -29,6 +29,7 @@
 #include <memory>
 #include <stdexcept>
 
+#include <router.h>
 namespace detail {
 
 struct static_pool
@@ -322,6 +323,12 @@ private:
 
     void process_request(http::request<request_body_t, http::basic_fields<alloc_t>> const& req)
     {
+        auto host = std::string(req[http::field::host]);
+        auto worker_group_bind = lake::global_router_.route_by_host(host);
+        if(worker_group_bind) {
+            auto worker_group = static_cast<lake::WorkerGroup *>(worker_group_bind->get_native_object());
+            worker_group->enqueue_request();
+        }
         switch (req.method())
         {
         case http::verb::get:
