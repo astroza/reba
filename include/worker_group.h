@@ -11,13 +11,18 @@ namespace lake
 {
 class Worker;
 
-class WorkerGroup : boost::thread_group
+class WorkerGroup
 {
 public:
     WorkerGroup(std::string script_source, bool privileged = false);
-    void enqueue_request();
+    Worker *scale_up();
+    void delegate_request();
+    size_t size();
     std::string script_source;
     bool privileged;
+private:
+    void add_worker(Worker *worker);
+    std::list<Worker *> workers_;
 };
 } // namespace lake
 #endif

@@ -327,7 +327,7 @@ private:
         auto worker_group_bind = lake::global_router_.route_by_host(host);
         if(worker_group_bind) {
             auto worker_group = static_cast<lake::WorkerGroup *>(worker_group_bind->get_native_object());
-            worker_group->enqueue_request();
+            worker_group->delegate_request();
         }
         switch (req.method())
         {
