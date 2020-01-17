@@ -3,22 +3,36 @@
 #include <worker_group.h>
 #include <worker.h>
 
-namespace lake 
+namespace lake
 {
 bool report_exceptions = true;
 bool print_result = true;
 
 // it must be called after root HandleScope creation
-void Worker::init_api_private_keys(v8::Isolate *isolate) 
+void Worker::init_api_private_keys(v8::Isolate *isolate)
 {
-  api_private_keys[WorkerAPIPrivateKeyIndex::TIMER_CALLBACK] = v8::Private::ForApi(isolate, 
-  v8::String::NewFromUtf8(isolate, "timer::callback").ToLocalChecked());
+    api_private_keys[WorkerAPIPrivateKeyIndex::Value::TimerCallback] = v8::Private::ForApi(isolate,
+            v8::String::NewFromUtf8(isolate, "timer::callback").ToLocalChecked());
 }
 
-v8::MaybeLocal<v8::Private> Worker::get_api_private_key(WorkerAPIPrivateKeyIndex idx)
+v8::MaybeLocal<v8::Private> Worker::get_api_private_key(WorkerAPIPrivateKeyIndex::Value idx)
 {
-  assert(idx < WorkerAPIPrivateKeyIndex::MAX);
-  return api_private_keys[idx];
+    return api_private_keys[idx];
+}
+
+void Worker::set_callback(WorkerCallbackIndex::Value idx, v8::Local<v8::Function> &func)
+{
+    registered_callbacks_[idx].Reset(isolate_, func);
+}
+
+v8::MaybeLocal<v8::Function> Worker::get_callback(WorkerCallbackIndex::Value idx)
+{
+    v8::Persistent<v8::Function> &persistent_handle = registered_callbacks_[idx];
+    if (persistent_handle.IsEmpty())
+    {
+        return v8::MaybeLocal<v8::Function>();
+    }
+    return registered_callbacks_[idx].Get(isolate_);
 }
 
 Worker::Worker(WorkerGroup *worker_group) : worker_group(worker_group), keep_running(boost::asio::make_work_guard(io_context))
@@ -36,15 +50,16 @@ void Worker::run()
         v8::Local<v8::Context> context = lake::engine::create_context(isolate_, worker_group->privileged);
         v8::Context::Scope context_scope(context);
 
-        isolate_->SetData(0, this);
+        isolate_->SetData(IsolateDataIndex::Value::Worker, this);
         init_api_private_keys(isolate_);
 
         v8::TryCatch try_catch(isolate_);
         v8::Local<v8::String> script_name =
-        v8::String::NewFromUtf8(isolate_, "worker.js",
-                                  v8::NewStringType::kNormal).ToLocalChecked();
+            v8::String::NewFromUtf8(isolate_, "worker.js",
+                                    v8::NewStringType::kNormal)
+                .ToLocalChecked();
         v8::ScriptOrigin origin(script_name);
-        
+
         v8::Local<v8::Script> script;
         v8::Local<v8::String> source;
         v8::String::NewFromUtf8(isolate_, worker_group->script_source.c_str(), v8::NewStringType::kNormal, static_cast<int>(worker_group->script_source.size())).ToLocal(&source);
@@ -79,12 +94,12 @@ void Worker::run()
                 }
             }
         }
-      lake::engine::report_exception(isolate_, &try_catch);
-      while (io_context.run_one() > 0)
-      {
-        while (v8::platform::PumpMessageLoop(lake::engine::platform.get(), isolate_))
-            continue;
-      }
+        lake::engine::report_exception(isolate_, &try_catch);
+        while (io_context.run_one() > 0)
+        {
+            while (v8::platform::PumpMessageLoop(lake::engine::platform.get(), isolate_))
+                continue;
+        }
     }
 }
 
@@ -92,12 +107,13 @@ void Worker::process_request()
 {
     v8::HandleScope handle_scope(isolate_);
     auto context = isolate_->GetCurrentContext();
-    auto handler = context->Global()->Get(context, v8::String::NewFromUtf8(isolate_, "handler",
-                                  v8::NewStringType::kNormal).ToLocalChecked());
-    if(!handler.IsEmpty()) {
-        auto handler_as_function = v8::Local<v8::Function>::Cast(handler.ToLocalChecked());
-        handler_as_function->Call(context, context->Global(), 0, nullptr);
+    auto maybe_callback = get_callback(WorkerCallbackIndex::Value::FetchEvent);
+
+    if (!maybe_callback.IsEmpty())
+    {
+        auto fetch_callback = v8::Local<v8::Function>::Cast(maybe_callback.ToLocalChecked());
+        fetch_callback->Call(context, context->Global(), 0, nullptr);
     }
 }
-}
-// isolate_->VisitHandlesWithClassIds( &phv );
+} // namespace lake
+  // isolate_->VisitHandlesWithClassIds( &phv );

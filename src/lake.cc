@@ -1,6 +1,7 @@
 #include <engine.h>
 #include <webapi.h>
 #include <lakeapi.h>
+#include <worker.h>
 
 namespace lake
 {
@@ -16,10 +17,10 @@ v8::Local<v8::Context> create_context(v8::Isolate *isolate, bool privileged)
     {
         lakeapi::init_global(isolate, global);
     }
-    webapi::Console *console = static_cast<webapi::Console *>(isolate->GetData(1));
+    webapi::Console *console = static_cast<webapi::Console *>(isolate->GetData(IsolateDataIndex::Value::Console));
     if(!console) {
         console = new webapi::Console(isolate);
-        isolate->SetData(0, console);
+        isolate->SetData(IsolateDataIndex::Value::Console, console);
         v8::debug::SetConsoleDelegate(isolate, console);
     }
     return v8::Context::New(isolate, NULL, global);
@@ -46,22 +47,22 @@ NativeBind::NativeBind(v8::Isolate *isolate, v8::Local<v8::Object> handle, void 
     persistent_handle.Reset(isolate, handle);
     native_object = obj;
     native_delete_callback = delete_callback;
-    refCount = 1;
+    ref_count = 1;
     unref();
     
 }
 
 void NativeBind::ref()
 {
-    refCount++;
+    ref_count++;
     persistent_handle.ClearWeak();
 }
 
 void NativeBind::unref()
 {
-    if(refCount) {
-        refCount--;
-        if(refCount == 0) {
+    if(ref_count) {
+        ref_count--;
+        if(ref_count == 0) {
             persistent_handle.SetWeak(this, weak_callback, v8::WeakCallbackType::kParameter);
         }
     }

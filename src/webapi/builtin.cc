@@ -12,5 +12,9 @@ void init_global(v8::Isolate *isolate, v8::Local<v8::ObjectTemplate> &global)
         v8::String::NewFromUtf8(isolate, "setTimeout", v8::NewStringType::kNormal)
             .ToLocalChecked(),
         v8::FunctionTemplate::New(isolate, timer::set_timeout));
+    global->Set(
+        v8::String::NewFromUtf8(isolate, "addEventListener", v8::NewStringType::kNormal)
+            .ToLocalChecked(),
+        v8::FunctionTemplate::New(isolate, event::addEventListener));
 }
 } // namespace webapi

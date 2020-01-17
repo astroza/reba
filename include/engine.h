@@ -26,7 +26,7 @@ public:
     void *get_native_object();
     v8::Local<v8::Object> get_object_handle(v8::Isolate *isolate);
 private:
-    unsigned int refCount;
+    unsigned int ref_count;
     void *native_object;
     void (*native_delete_callback)(void *);
     v8::Persistent<v8::Object> persistent_handle;
