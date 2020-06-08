@@ -62,7 +62,7 @@ v8::Local<v8::FunctionTemplate> function_template(v8::Isolate *isolate)
     return handle_scope.Escape(func_tmpl);
 }
 
-// Candidate for CodeStubAssembler/Torque rewritte
+// Candidate for CodeStubAssembler/Torque rewrite
 void set_timeout(const v8::FunctionCallbackInfo<v8::Value> &args)
 {
     v8::Isolate *isolate = args.GetIsolate();

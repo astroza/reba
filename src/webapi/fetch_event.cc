@@ -27,7 +27,7 @@ void addEventListener(const v8::FunctionCallbackInfo<v8::Value> &args)
     }
     if (args[1]->IsFunction())
     {
-        // It's a fetch listener ?
+        // Is it a fetch listener ?
         auto fetch_string = v8::String::NewFromUtf8(isolate, "fetch", v8::NewStringType::kNormal);
         if (args[0]->Equals(context, fetch_string.ToLocalChecked()).FromJust())
         {

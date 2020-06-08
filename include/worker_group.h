@@ -6,6 +6,7 @@
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/executor_work_guard.hpp>
 #include <engine.h>
+#include <http.h>
 
 namespace lake
 {
@@ -14,7 +15,7 @@ class Worker;
 class WorkerGroup
 {
 public:
-    WorkerGroup(std::string script_source, bool privileged = false);
+    WorkerGroup(std::string script_source, lake::http::Server *server, bool privileged = false);
     Worker *scale_up();
     void delegate_request();
     size_t size();
@@ -23,6 +24,7 @@ public:
 private:
     void add_worker(Worker *worker);
     std::list<Worker *> workers_;
+    http::Server *server_;
 };
 } // namespace lake
 #endif
