@@ -44,44 +44,43 @@ void destroy()
 NativeBind::NativeBind(v8::Isolate *isolate, v8::Local<v8::Object> handle, void *obj, void (*delete_callback)(void *))
 {
     handle->SetAlignedPointerInInternalField(0, this);
-    persistent_handle.Reset(isolate, handle);
-    native_object = obj;
-    native_delete_callback = delete_callback;
-    ref_count = 1;
-    unref();
-    
+    persistent_handle_.Reset(isolate, handle);
+    native_object_ = obj;
+    native_delete_callback_ = delete_callback;
+    ref_count_ = 1;
+    Unref();
 }
 
-void NativeBind::ref()
+void NativeBind::Ref()
 {
-    ref_count++;
-    persistent_handle.ClearWeak();
+    ref_count_++;
+    persistent_handle_.ClearWeak();
 }
 
-void NativeBind::unref()
+void NativeBind::Unref()
 {
-    if(ref_count) {
-        ref_count--;
-        if(ref_count == 0) {
-            persistent_handle.SetWeak(this, weak_callback, v8::WeakCallbackType::kParameter);
+    if(ref_count_) {
+        ref_count_--;
+        if(ref_count_ == 0) {
+            persistent_handle_.SetWeak(this, WeakCallback, v8::WeakCallbackType::kParameter);
         }
     }
 }
 
-void *NativeBind::get_native_object() {
-    return native_object;
+void *NativeBind::GetNativeObject() {
+    return native_object_;
 }
 
-void NativeBind::weak_callback(const v8::WeakCallbackInfo<NativeBind> &data)
+void NativeBind::WeakCallback(const v8::WeakCallbackInfo<NativeBind> &data)
 {
     NativeBind *native_bind = data.GetParameter();
-    native_bind->native_delete_callback(native_bind->get_native_object());
-    puts("weak_callback");
+    native_bind->native_delete_callback_(native_bind->GetNativeObject());
+    puts("WeakCallback");
     delete native_bind;
 }
 
-v8::Local<v8::Object> NativeBind::get_object_handle(v8::Isolate *isolate) {
-    return persistent_handle.Get(isolate);
+v8::Local<v8::Object> NativeBind::GetObjectHandle(v8::Isolate *isolate) {
+    return persistent_handle_.Get(isolate);
 }
 
 const char* utf8_value_to_cstring(const v8::String::Utf8Value& value) {

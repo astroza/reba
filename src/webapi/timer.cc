@@ -38,18 +38,18 @@ void constructor(const v8::FunctionCallbackInfo<v8::Value> &args)
     timer->expires_from_now(boost::posix_time::milliseconds(time_ms));
     args.This()->SetPrivate(context, worker->get_api_private_key(lake::WorkerAPIPrivateKeyIndex::Value::TimerCallback).ToLocalChecked(), args[0]);
     auto timer_bind = new lake::engine::NativeBind(isolate, args.This(), timer, lake::engine::NativeBindDeleteCallback<boost::asio::deadline_timer>);
-    timer_bind->ref();
+    timer_bind->Ref();
     timer->async_wait([isolate, worker, timer_bind](const boost::system::error_code& ec)
     {
         v8::HandleScope handle_scope(isolate);
         v8::TryCatch try_catch(isolate);
-        auto timer_obj = timer_bind->get_object_handle(isolate);
+        auto timer_obj = timer_bind->GetObjectHandle(isolate);
         auto callback = timer_obj->GetPrivate(isolate->GetCurrentContext(), worker->get_api_private_key(lake::WorkerAPIPrivateKeyIndex::Value::TimerCallback).ToLocalChecked()).ToLocalChecked();
         auto callback_as_function = v8::Local<v8::Function>::Cast(callback);
         auto context = isolate->GetCurrentContext();
         try_catch.SetVerbose(true);
         callback_as_function->Call(context, context->Global(), 0, nullptr);
-        timer_bind->unref();
+        timer_bind->Unref();
     });
 }
 

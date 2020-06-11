@@ -21,16 +21,16 @@ class NativeBind
 {
 public:
     NativeBind(v8::Isolate *isolate, v8::Local<v8::Object> handle, void *obj, void (*delete_callback)(void *));
-    void ref();
-    void unref();
-    void *get_native_object();
-    v8::Local<v8::Object> get_object_handle(v8::Isolate *isolate);
+    void Ref();
+    void Unref();
+    void *GetNativeObject();
+    v8::Local<v8::Object> GetObjectHandle(v8::Isolate *isolate);
 private:
-    unsigned int ref_count;
-    void *native_object;
-    void (*native_delete_callback)(void *);
-    v8::Persistent<v8::Object> persistent_handle;
-    static void weak_callback(const v8::WeakCallbackInfo<NativeBind> &data);
+    unsigned int ref_count_;
+    void *native_object_;
+    void (*native_delete_callback_)(void *);
+    v8::Persistent<v8::Object> persistent_handle_;
+    static void WeakCallback(const v8::WeakCallbackInfo<NativeBind> &data);
 };
 
 template<class T>
