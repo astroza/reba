@@ -1,13 +1,12 @@
 #include <worker.h>
 #include <worker_group.h>
-#include <http.h>
 #include <boost/asio.hpp>
 
 #include <iostream>
 namespace lake
 {
-    WorkerGroup::WorkerGroup(std::string script_source, lake::http::Server *server,
-                             bool privileged) : script_source(script_source), server_(server), privileged(privileged)
+    WorkerGroup::WorkerGroup(std::string script_source,
+                             bool privileged) : script_source(script_source), privileged(privileged)
     {
         if (privileged)
         {

@@ -18,7 +18,5 @@ private:
     std::map<const std::string, engine::NativeBind *> host_map_;
     std::mutex host_map_mutex_;
 };
-
-extern Router g_router;
 } // namespace lake
 #endif
