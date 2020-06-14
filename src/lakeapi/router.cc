@@ -46,7 +46,7 @@ void addHost(const v8::FunctionCallbackInfo<v8::Value> &args)
         {
             auto worker_group = static_cast<lake::engine::NativeBind *>(worker_group_handle->GetAlignedPointerFromInternalField(0));
             std::string host(lake::engine::utf8_value_to_cstring(v8::String::Utf8Value(isolate, args[0])));
-            bool new_host = lake::global_router_.addHost(host, worker_group);
+            bool new_host = lake::g_router.addHost(host, worker_group);
             args.GetReturnValue().Set(new_host);
             return;
         }
@@ -66,7 +66,7 @@ void removeHost(const v8::FunctionCallbackInfo<v8::Value> &args)
         return;
     }
     std::string host(lake::engine::utf8_value_to_cstring(v8::String::Utf8Value(isolate, args[0])));
-    bool host_found = lake::global_router_.removeHost(host);
+    bool host_found = lake::g_router.removeHost(host);
     args.GetReturnValue().Set(host_found);
 }
 } // namespace router

@@ -5,7 +5,7 @@
 
 namespace lake
 {
-Router global_router_;
+Router g_router;
 
 Router::Router(){};
 

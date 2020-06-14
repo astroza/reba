@@ -19,6 +19,6 @@ private:
     std::mutex host_map_mutex_;
 };
 
-extern Router global_router_;
+extern Router g_router;
 } // namespace lake
 #endif

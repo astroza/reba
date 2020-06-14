@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 project(Lake CXX)
-add_compile_options(-std=c++14 -O3 -fPIC -DV8_COMPRESS_POINTERS)
+add_compile_options(-std=c++2a -O3 -fPIC -DV8_COMPRESS_POINTERS)
 set(CMAKE_C_COMPILER clang)
 set(CMAKE_C_COMPILER_TARGET ${triple})
 set(CMAKE_CXX_COMPILER clang++)
