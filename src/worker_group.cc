@@ -3,7 +3,7 @@
 #include <boost/asio.hpp>
 
 #include <iostream>
-namespace lake
+namespace reba
 {
     WorkerGroup::WorkerGroup(std::string script_source,
                              bool privileged) : script_source(script_source), privileged(privileged)
@@ -47,4 +47,4 @@ namespace lake
             selected_worker->process_request();
         });
     }
-} // namespace lake
+} // namespace reba

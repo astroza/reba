@@ -1,9 +1,9 @@
 #include <engine.h>
 #include <webapi.h>
-#include <lakeapi.h>
+#include <rebaapi.h>
 #include <worker.h>
 
-namespace lake
+namespace reba
 {
 namespace engine {
 std::unique_ptr<v8::Platform> platform;
@@ -15,7 +15,7 @@ v8::Local<v8::Context> create_context(v8::Isolate *isolate, bool privileged)
     webapi::init_global(isolate, global);
     if (privileged)
     {
-        lakeapi::init_global(isolate, global);
+        rebaapi::init_global(isolate, global);
     }
     webapi::Console *console = static_cast<webapi::Console *>(isolate->GetData(IsolateDataIndex::Value::Console));
     if(!console) {
@@ -28,7 +28,7 @@ v8::Local<v8::Context> create_context(v8::Isolate *isolate, bool privileged)
 
 void init()
 {
-    v8::V8::InitializeICUDefaultLocation("lake");
+    v8::V8::InitializeICUDefaultLocation("reba");
     v8::V8::InitializeExternalStartupData("snapshot_blob.bin");
     platform = v8::platform::NewDefaultPlatform();
     v8::V8::InitializePlatform(platform.get());
@@ -131,4 +131,4 @@ void report_exception(v8::Isolate* isolate, v8::TryCatch* try_catch) {
 }
 
 } // namespace engine
-} // namespace lake
+} // namespace reba

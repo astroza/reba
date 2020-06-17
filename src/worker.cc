@@ -3,7 +3,7 @@
 #include <worker_group.h>
 #include <worker.h>
 
-namespace lake
+namespace reba
 {
 bool report_exceptions = true;
 bool print_result = true;
@@ -43,11 +43,11 @@ Worker::Worker(WorkerGroup *worker_group) : worker_group(worker_group), keep_run
 
 void Worker::run()
 {
-    isolate_ = v8::Isolate::New(lake::engine::create_params);
+    isolate_ = v8::Isolate::New(reba::engine::create_params);
     {
         v8::Isolate::Scope isolate_scope(isolate_);
         v8::HandleScope handle_scope(isolate_);
-        v8::Local<v8::Context> context = lake::engine::create_context(isolate_, worker_group->privileged);
+        v8::Local<v8::Context> context = reba::engine::create_context(isolate_, worker_group->privileged);
         v8::Context::Scope context_scope(context);
 
         isolate_->SetData(IsolateDataIndex::Value::Worker, this);
@@ -67,7 +67,7 @@ void Worker::run()
         {
             // Print errors that happened during compilation.
             if (report_exceptions)
-                lake::engine::report_exception(isolate_, &try_catch);
+                reba::engine::report_exception(isolate_, &try_catch);
             return;
         }
         else
@@ -78,7 +78,7 @@ void Worker::run()
                 assert(try_catch.HasCaught());
                 // Print errors that happened during execution.
                 if (report_exceptions)
-                    lake::engine::report_exception(isolate_, &try_catch);
+                    reba::engine::report_exception(isolate_, &try_catch);
                 return;
             }
             else
@@ -89,15 +89,15 @@ void Worker::run()
                     // If all went well and the result wasn't undefined then print
                     // the returned value.
                     v8::String::Utf8Value str(isolate_, result);
-                    const char *cstr = lake::engine::utf8_value_to_cstring(str);
+                    const char *cstr = reba::engine::utf8_value_to_cstring(str);
                     printf("%s\n", cstr);
                 }
             }
         }
-        lake::engine::report_exception(isolate_, &try_catch);
+        reba::engine::report_exception(isolate_, &try_catch);
         while (io_context.run_one() > 0)
         {
-            while (v8::platform::PumpMessageLoop(lake::engine::platform.get(), isolate_))
+            while (v8::platform::PumpMessageLoop(reba::engine::platform.get(), isolate_))
                 continue;
         }
     }
@@ -115,5 +115,5 @@ void Worker::process_request()
         fetch_callback->Call(context, context->Global(), 0, nullptr);
     }
 }
-} // namespace lake
+} // namespace reba
   // isolate_->VisitHandlesWithClassIds( &phv );

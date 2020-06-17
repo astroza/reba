@@ -5,7 +5,7 @@
 #include <map>
 #include <mutex>
 
-namespace lake
+namespace reba
 {
 class Router
 {
@@ -18,5 +18,5 @@ private:
     std::map<const std::string, engine::NativeBind *> host_map_;
     std::mutex host_map_mutex_;
 };
-} // namespace lake
+} // namespace reba
 #endif

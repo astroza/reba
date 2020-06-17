@@ -7,7 +7,7 @@
 #include <boost/asio/executor_work_guard.hpp>
 #include <engine.h>
 
-namespace lake
+namespace reba
 {
 class Worker;
 
@@ -24,5 +24,5 @@ private:
     void add_worker(Worker *worker);
     std::list<Worker *> workers_;
 };
-} // namespace lake
+} // namespace reba
 #endif

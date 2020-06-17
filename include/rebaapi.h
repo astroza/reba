@@ -4,7 +4,7 @@
 #include <engine.h>
 #include <router.h>
 
-namespace lakeapi
+namespace rebaapi
 {
 void init_global(v8::Isolate *isolate, v8::Local<v8::ObjectTemplate> &global);
 namespace worker_group
@@ -14,7 +14,7 @@ v8::Local<v8::FunctionTemplate> function_template(v8::Isolate *isolate);
 } // namespace worker_group
 namespace router
 {
-extern lake::Router g_default_router;
+extern reba::Router g_default_router;
 
 v8::Local<v8::ObjectTemplate> object_template(v8::Isolate *isolate);
 void addHost(const v8::FunctionCallbackInfo<v8::Value> &args);

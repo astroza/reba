@@ -45,12 +45,12 @@ void fail(beast::error_code ec, char const *what)
 }
 
 
-lake::http::Server::Server(lake::Router *router) : router_(router) {
+reba::http::Server::Server(reba::Router *router) : router_(router) {
     threads_ = 4;
     io_context_ = std::make_unique<boost::asio::io_context>(threads_);
 }
 
-void lake::http::Server::Listen(
+void reba::http::Server::Listen(
     tcp::endpoint endpoint,
     net::yield_context yield)
 {
@@ -98,7 +98,7 @@ void lake::http::Server::Listen(
     }
 }
 
-void lake::http::Server::DoSession(
+void reba::http::Server::DoSession(
     beast::tcp_stream &stream,
     net::yield_context yield)
 {
@@ -123,7 +123,7 @@ void lake::http::Server::DoSession(
         auto host = std::string(req[beast::http::field::host]);
         auto worker_group_bind = router_->route_by_host(host);
         if(worker_group_bind) {
-            auto worker_group = static_cast<lake::WorkerGroup *>(worker_group_bind->GetNativeObject());
+            auto worker_group = static_cast<reba::WorkerGroup *>(worker_group_bind->GetNativeObject());
             worker_group->delegate_request();
         }
         // Send the response
@@ -148,7 +148,7 @@ void lake::http::Server::DoSession(
     // At this point the connection is closed gracefully
 }
 
-int lake::http::Server::Start(boost::asio::ip::address listen_address, unsigned short listen_port)
+int reba::http::Server::Start(boost::asio::ip::address listen_address, unsigned short listen_port)
 {
     net::spawn(*io_context_,
                 std::bind(

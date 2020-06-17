@@ -3,7 +3,7 @@
 #include <boost/beast/http.hpp>
 #include <boost/beast/version.hpp>
 
-namespace lake
+namespace reba
 {
 Router g_router;
 
@@ -49,4 +49,4 @@ engine::NativeBind *Router::route_by_host(const std::string &host)
 //{
 
 //}
-} // namespace lake
+} // namespace reba

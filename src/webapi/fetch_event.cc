@@ -31,9 +31,9 @@ void addEventListener(const v8::FunctionCallbackInfo<v8::Value> &args)
         auto fetch_string = v8::String::NewFromUtf8(isolate, "fetch", v8::NewStringType::kNormal);
         if (args[0]->Equals(context, fetch_string.ToLocalChecked()).FromJust())
         {
-            auto worker = static_cast<lake::Worker *>(isolate->GetData(lake::IsolateDataIndex::Value::Worker));
+            auto worker = static_cast<reba::Worker *>(isolate->GetData(reba::IsolateDataIndex::Value::Worker));
             auto fetch_callback = v8::Local<v8::Function>::Cast(args[1]);
-            worker->set_callback(lake::WorkerCallbackIndex::Value::FetchEvent, fetch_callback);
+            worker->set_callback(reba::WorkerCallbackIndex::Value::FetchEvent, fetch_callback);
         }
     }
 }

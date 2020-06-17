@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(Lake CXX)
+project(Reba CXX)
 add_compile_options(-std=c++2a -O3 -fPIC -DV8_COMPRESS_POINTERS)
 set(CMAKE_C_COMPILER clang)
 set(CMAKE_C_COMPILER_TARGET ${triple})
@@ -8,9 +8,9 @@ set(CMAKE_CXX_COMPILER_TARGET ${triple})
 
 file(GLOB core_source ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cc)
 file(GLOB webapi_source ${CMAKE_CURRENT_SOURCE_DIR}/src/webapi/*.cc)
-file(GLOB lakeapi_source ${CMAKE_CURRENT_SOURCE_DIR}/src/lakeapi/*.cc)
+file(GLOB rebaapi_source ${CMAKE_CURRENT_SOURCE_DIR}/src/rebaapi/*.cc)
 
-set(SOURCE_FILES ${core_source} ${webapi_source} ${lakeapi_source})
+set(SOURCE_FILES ${core_source} ${webapi_source} ${rebaapi_source})
 
 add_custom_target(libv8_build
                   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tools
@@ -23,20 +23,20 @@ set(Boost_USE_STATIC_LIBS        OFF)
 # https://github.com/boostorg/boost_install/issues/13
 set(Boost_NO_BOOST_CMAKE         ON)
 set(Boost_USE_DEBUG_LIBS         ON)
-add_executable(lake ${SOURCE_FILES})
-#add_dependencies(lake libv8_build)
+add_executable(reba ${SOURCE_FILES})
+add_dependencies(reba libv8_build)
 find_package(Boost 1.70.0 COMPONENTS system coroutine thread)
 if(!Boost_FOUND)
-  message(SEND_ERROR "Boost needed to build Lake")
+  message(SEND_ERROR "Boost needed to build reba")
 endif()
 include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/deps/v8/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/deps/v8)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/deps/v8/out/x64.release/gen)
-target_link_libraries(lake ${Boost_LIBRARIES})
+target_link_libraries(reba ${Boost_LIBRARIES})
 if(APPLE)
 elseif(UNIX)
-	target_link_options(lake PRIVATE -fuse-ld=lld -pie -Wl,--fatal-warnings -fPIC -Wl,-z,noexecstack -Wl,-z,relro -Wl,-z,now -Wl,-z,defs -Wl,--as-needed -m64 -Werror -rdynamic --sysroot=${CMAKE_CURRENT_SOURCE_DIR}/deps/v8/build/linux/debian_sid_amd64-sysroot -L${CMAKE_CURRENT_SOURCE_DIR}/deps/v8/build/linux/debian_sid_amd64-sysroot/usr/local/lib/x86_64-linux-gnu -L${CMAKE_CURRENT_SOURCE_DIR}/deps/v8/build/linux/debian_sid_amd64-sysroot/lib/x86_64-linux-gnu -L${CMAKE_CURRENT_SOURCE_DIR}/deps/v8/build/linux/debian_sid_amd64-sysroot/usr/lib/x86_64-linux-gnu -pie -Wl,--disable-new-dtags -Wl,-O2 -Wl,--gc-sections)
+	target_link_options(reba PRIVATE -fuse-ld=lld -pie -Wl,--fatal-warnings -fPIC -Wl,-z,noexecstack -Wl,-z,relro -Wl,-z,now -Wl,-z,defs -Wl,--as-needed -m64 -Werror -rdynamic --sysroot=${CMAKE_CURRENT_SOURCE_DIR}/deps/v8/build/linux/debian_sid_amd64-sysroot -L${CMAKE_CURRENT_SOURCE_DIR}/deps/v8/build/linux/debian_sid_amd64-sysroot/usr/local/lib/x86_64-linux-gnu -L${CMAKE_CURRENT_SOURCE_DIR}/deps/v8/build/linux/debian_sid_amd64-sysroot/lib/x86_64-linux-gnu -L${CMAKE_CURRENT_SOURCE_DIR}/deps/v8/build/linux/debian_sid_amd64-sysroot/usr/lib/x86_64-linux-gnu -pie -Wl,--disable-new-dtags -Wl,-O2 -Wl,--gc-sections)
 endif()
 add_library(libv8 OBJECT IMPORTED)
 list(APPEND libv8_objs
@@ -64,5 +64,5 @@ list(APPEND libv8_objs
 list(TRANSFORM libv8_objs PREPEND ${CMAKE_CURRENT_SOURCE_DIR}/deps/v8/out/x64.release/)
 
 set_target_properties(libv8 PROPERTIES IMPORTED_OBJECTS "${libv8_objs}")
-target_link_libraries(lake $<TARGET_OBJECTS:libv8>)
-target_include_directories(lake PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_link_libraries(reba $<TARGET_OBJECTS:libv8>)
+target_include_directories(reba PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)

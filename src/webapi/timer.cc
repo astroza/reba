@@ -14,7 +14,7 @@ void constructor(const v8::FunctionCallbackInfo<v8::Value> &args)
 {
     v8::Isolate *isolate = args.GetIsolate();
     v8::Local<v8::Context> context = isolate->GetCurrentContext();
-    lake::Worker *worker;
+    reba::Worker *worker;
     int64_t time_ms = 0;
     boost::asio::deadline_timer *timer;
 
@@ -33,18 +33,18 @@ void constructor(const v8::FunctionCallbackInfo<v8::Value> &args)
         auto time_ms_integer = args[1]->ToInteger(context).ToLocalChecked();
         time_ms = time_ms_integer->Value();
     }
-    worker = static_cast<lake::Worker *>(isolate->GetData(lake::IsolateDataIndex::Value::Worker));
+    worker = static_cast<reba::Worker *>(isolate->GetData(reba::IsolateDataIndex::Value::Worker));
     timer = new boost::asio::deadline_timer(worker->io_context);
     timer->expires_from_now(boost::posix_time::milliseconds(time_ms));
-    args.This()->SetPrivate(context, worker->get_api_private_key(lake::WorkerAPIPrivateKeyIndex::Value::TimerCallback).ToLocalChecked(), args[0]);
-    auto timer_bind = new lake::engine::NativeBind(isolate, args.This(), timer, lake::engine::NativeBindDeleteCallback<boost::asio::deadline_timer>);
+    args.This()->SetPrivate(context, worker->get_api_private_key(reba::WorkerAPIPrivateKeyIndex::Value::TimerCallback).ToLocalChecked(), args[0]);
+    auto timer_bind = new reba::engine::NativeBind(isolate, args.This(), timer, reba::engine::NativeBindDeleteCallback<boost::asio::deadline_timer>);
     timer_bind->Ref();
     timer->async_wait([isolate, worker, timer_bind](const boost::system::error_code& ec)
     {
         v8::HandleScope handle_scope(isolate);
         v8::TryCatch try_catch(isolate);
         auto timer_obj = timer_bind->GetObjectHandle(isolate);
-        auto callback = timer_obj->GetPrivate(isolate->GetCurrentContext(), worker->get_api_private_key(lake::WorkerAPIPrivateKeyIndex::Value::TimerCallback).ToLocalChecked()).ToLocalChecked();
+        auto callback = timer_obj->GetPrivate(isolate->GetCurrentContext(), worker->get_api_private_key(reba::WorkerAPIPrivateKeyIndex::Value::TimerCallback).ToLocalChecked()).ToLocalChecked();
         auto callback_as_function = v8::Local<v8::Function>::Cast(callback);
         auto context = isolate->GetCurrentContext();
         try_catch.SetVerbose(true);

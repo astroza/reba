@@ -8,7 +8,7 @@
 #include <v8.h>
 #include <libplatform/libplatform.h>
 
-namespace lake
+namespace reba
 {
 class WorkerGroup;
 

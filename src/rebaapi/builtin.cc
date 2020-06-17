@@ -1,7 +1,7 @@
 #include <engine.h>
-#include <lakeapi.h>
+#include <rebaapi.h>
 
-namespace lakeapi
+namespace rebaapi
 {
 void init_global(v8::Isolate *isolate, v8::Local<v8::ObjectTemplate> &global) {
     global->Set(

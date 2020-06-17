@@ -4,7 +4,7 @@
 #include <v8.h>
 #include <libplatform/libplatform.h>
 
-namespace lake
+namespace reba
 {
 namespace engine
 {
@@ -39,6 +39,6 @@ void NativeBindDeleteCallback(void *obj) {
     delete _obj;
 }
 } // namespace engine
-} // namespace lake
+} // namespace reba
 
 #endif
