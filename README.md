@@ -1,5 +1,5 @@
-# Lake
-Lake is a Service Worker subset implementation for running on server side.
+# Reba
+Reba is a Service Worker subset implementation for running on server side.
 
 ## Features
 * Hot reconfiguration by HTTP API: Privileged Isolate to manage WorkerGroups
@@ -13,11 +13,11 @@ Lake is a Service Worker subset implementation for running on server side.
 * Basic functions: setTimeout, setInterval
 
 ## Design
-Lake has two essential entities:
+Reba has two essential entities:
 * WorkerGroup: A group of threads running the same script. It scales itself automatically based on the group's load.
 * Router: A global instance storing the data needed to route an web request to an specific WorkerGroup
 
-There is a special WorkerGroup created when Lake is started
+There is a special WorkerGroup created when Reba is started
 * WorkerGroup Zero: It has a privileged context able to create new WorkerGroups and set routes.
 
 The expected behavior of WorkerGroup Zero is:
