@@ -46,11 +46,11 @@ Worker::Worker(WorkerGroup *worker_group) : worker_group(worker_group), keep_run
 
 void Worker::run()
 {
-    isolate_ = v8::Isolate::New(reba::engine::create_params);
+    isolate_ = v8::Isolate::New(reba::engine::g_create_params);
     {
         v8::Isolate::Scope isolate_scope(isolate_);
         v8::HandleScope handle_scope(isolate_);
-        v8::Local<v8::Context> context = reba::engine::create_context(isolate_, worker_group->privileged);
+        v8::Local<v8::Context> context = reba::engine::createContext(isolate_, worker_group->privileged);
         v8::Context::Scope context_scope(context);
 
         isolate_->SetData(IsolateDataIndex::Value::Worker, this);
@@ -100,7 +100,8 @@ void Worker::run()
         reba::engine::report_exception(isolate_, &try_catch);
         while (io_context.run_one() > 0)
         {
-            while (v8::platform::PumpMessageLoop(reba::engine::platform.get(), isolate_))
+            // isolate_->LowMemoryNotification();
+            while (v8::platform::PumpMessageLoop(reba::engine::g_platform.get(), isolate_))
                 continue;
         }
     }

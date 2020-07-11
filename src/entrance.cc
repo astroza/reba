@@ -70,7 +70,7 @@ awaitable<void> reba::http::Server::DoSession(
         try {
             co_await beast::http::async_read(session.stream_, session.buffer_, req_stage_0_, use_awaitable);
         } catch(const std::exception& e) {
-            std::cout << e.what() << std::endl;
+            // reba::log::print(reba::log::error, &session, e.what());
             break;
         }
         auto host = std::string((req_stage_0_.get())[beast::http::field::host]);
@@ -78,7 +78,7 @@ awaitable<void> reba::http::Server::DoSession(
         if(worker_group_bind == NULL) {
             break;
         }
-        auto worker_group = static_cast<reba::WorkerGroup *>(worker_group_bind->GetNativeObject());
+        auto worker_group = static_cast<reba::WorkerGroup *>(worker_group_bind->getNativeObject());
         auto worker = worker_group->SelectOrCreateWorker();
         boost::asio::post(worker->io_context, [worker, &session]() {
             // This lambda function runs on worker thread
