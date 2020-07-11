@@ -7,6 +7,7 @@
 
 #include <v8.h>
 #include <libplatform/libplatform.h>
+#include <http.h>
 
 namespace reba
 {
@@ -44,7 +45,7 @@ class Worker : boost::thread
 public:
     Worker(WorkerGroup *wg);
     void run();
-    void process_request();
+    void continueRequestProcessing(reba::http::Session &session);
     void set_callback(WorkerCallbackIndex::Value idx, v8::Local<v8::Function> &func);
     v8::MaybeLocal<v8::Function> get_callback(WorkerCallbackIndex::Value idx);
     v8::MaybeLocal<v8::Private> get_api_private_key(WorkerAPIPrivateKeyIndex::Value idx);

@@ -3,6 +3,9 @@
 #include <worker_group.h>
 #include <worker.h>
 
+namespace beast = boost::beast;   // from <boost/beast.hpp>
+namespace http = beast::http;           // from <boost/beast/http.hpp>
+
 namespace reba
 {
 bool report_exceptions = true;
@@ -103,7 +106,7 @@ void Worker::run()
     }
 }
 
-void Worker::process_request()
+void Worker::continueRequestProcessing(reba::http::Session &session)
 {
     v8::HandleScope handle_scope(isolate_);
     auto context = isolate_->GetCurrentContext();
@@ -112,7 +115,18 @@ void Worker::process_request()
     if (!maybe_callback.IsEmpty())
     {
         auto fetch_callback = v8::Local<v8::Function>::Cast(maybe_callback.ToLocalChecked());
-        fetch_callback->Call(context, context->Global(), 0, nullptr);
+        auto response = fetch_callback->Call(context, context->Global(), 0, nullptr);
+        
+        v8::String::Utf8Value str(isolate_, response.ToLocalChecked());
+
+        ::http::response<::http::string_body> res{::http::status::ok, 11};
+        
+        res.set(::http::field::server, BOOST_BEAST_VERSION_STRING);
+        res.set(::http::field::content_type, "text/html");
+        res.keep_alive(false);
+        res.body() = std::string(*str);
+        res.prepare_payload();
+        session.send(std::move(res));
     }
 }
 } // namespace reba

@@ -15,14 +15,15 @@ class WorkerGroup
 {
 public:
     WorkerGroup(std::string script_source, bool privileged = false);
-    Worker *scale_up();
-    void delegate_request();
-    size_t size();
+    Worker *CreateWorker();
+    Worker *SelectOrCreateWorker();
+    size_t Size();
     std::string script_source;
     bool privileged;
 private:
-    void add_worker(Worker *worker);
+    void RegisterWorker(Worker *new_worker);
     std::list<Worker *> workers_;
+    std::list<Worker *>::iterator it;
 };
 } // namespace reba
 #endif

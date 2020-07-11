@@ -10,41 +10,48 @@ namespace reba
     {
         if (privileged)
         {
-            scale_up();
+            CreateWorker();
         }
+        it = workers_.begin();
     }
 
-    void WorkerGroup::add_worker(Worker *new_worker)
+    void WorkerGroup::RegisterWorker(Worker *new_worker)
     {
         workers_.push_back(new_worker);
     }
 
-    Worker *WorkerGroup::scale_up()
+    Worker *WorkerGroup::CreateWorker()
     {
-        auto new_worker = new Worker(this);
-        add_worker(new_worker);
-        return new_worker;
+        Worker *ret;
+        int count = this->privileged? 1 : 8;
+        for(int i = 0; i < count; i++) {
+            auto new_worker = new Worker(this);
+            RegisterWorker(new_worker);
+            ret = new_worker;
+        }
+        return ret;
     }
 
-    size_t WorkerGroup::size()
+    size_t WorkerGroup::Size()
     {
         return workers_.size();
     }
 
-    void WorkerGroup::delegate_request()
-    {
+    Worker *WorkerGroup::SelectOrCreateWorker() {
         Worker *selected_worker;
-        if (size() > 0)
+        
+        if (Size() > 0)
         {
-            auto it = workers_.begin();
+            if(it == workers_.end()) {
+                it = workers_.begin();
+            }
             selected_worker = *it;
+            it++;
         }
         else
         {
-            selected_worker = scale_up();
+            selected_worker = CreateWorker();
         }
-        boost::asio::post(selected_worker->io_context, [selected_worker]() {
-            selected_worker->process_request();
-        });
+        return selected_worker;
     }
 } // namespace reba
