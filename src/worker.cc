@@ -87,7 +87,7 @@ void Worker::run()
             else
             {
                 assert(!try_catch.HasCaught());
-                if (print_result)
+                if (0)
                 {
                     // If all went well and the result wasn't undefined then print
                     // the returned value.
@@ -97,7 +97,6 @@ void Worker::run()
                 }
             }
         }
-        reba::engine::report_exception(isolate_, &try_catch);
         while (io_context.run_one() > 0)
         {
             // isolate_->LowMemoryNotification();
