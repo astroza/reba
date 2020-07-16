@@ -21,30 +21,6 @@ using boost::asio::detached;
 using boost::asio::use_awaitable;
 namespace this_coro = boost::asio::this_coro;
 
-template <
-    class Body, class Allocator,
-    class Send>
-void handle_request(
-    beast::http::request<Body, beast::http::basic_fields<Allocator>> &&req,
-    Send &&send)
-{
-
-    // Returns a server error response
-    auto const server_error =
-        [&req](beast::string_view what) {
-            beast::http::response<beast::http::string_body> res{beast::http::status::internal_server_error, req.version()};
-            res.set(beast::http::field::server, BOOST_BEAST_VERSION_STRING);
-            res.set(beast::http::field::content_type, "text/html");
-            res.keep_alive(req.keep_alive());
-            res.body() = "An error occurred: '" + std::string(what) + "'";
-            res.prepare_payload();
-            return res;
-        };
-    return send(server_error("Not implemented"));
-}
-
-//------------------------------------------------------------------------------
-
 // Report a failure
 void fail(beast::error_code ec, char const *what)
 {
@@ -79,8 +55,8 @@ awaitable<void> reba::http::Server::DoSession(
             break;
         }
         auto worker_group = static_cast<reba::WorkerGroup *>(worker_group_bind->getNativeObject());
-        auto worker = worker_group->SelectOrCreateWorker();
-        boost::asio::post(worker->io_context, [worker, &session]() {
+        auto worker = worker_group->selectOrCreateWorker();
+        boost::asio::post(worker->io_context_, [worker, &session]() {
             // This lambda function runs on worker thread
             worker->continueRequestProcessing(session);
         });

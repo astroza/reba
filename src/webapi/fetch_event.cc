@@ -33,7 +33,7 @@ void addEventListener(const v8::FunctionCallbackInfo<v8::Value> &args)
         {
             auto worker = static_cast<reba::Worker *>(isolate->GetData(reba::IsolateDataIndex::Value::Worker));
             auto fetch_callback = v8::Local<v8::Function>::Cast(args[1]);
-            worker->set_callback(reba::WorkerCallbackIndex::Value::FetchEvent, fetch_callback);
+            worker->setCallback(reba::WorkerCallbackIndex::Value::FetchEvent, fetch_callback);
         }
     }
 }

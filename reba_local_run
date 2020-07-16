@@ -28,6 +28,6 @@ SYSTEM_REBA=$(which reba)
 if [ "x$SYSTEM_REBA" != "x" ]; then
 	REBA=$SYSTEM_REBA
 fi
-echo "reba_local_run% Governator source at: /tmp/$TMP_FILE"
+echo "Executing: $REBA /tmp/$TMP_FILE $PORT"
 $REBA /tmp/$TMP_FILE $PORT
 rm -f /tmp/$TMP_FILE

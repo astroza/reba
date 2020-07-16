@@ -33,9 +33,15 @@ private:
 template <class T>
 void nativeBindDeleteCallback(void* obj)
 {
-    T* _obj = static_cast<T*>(obj);
-    delete _obj;
+    T* T_obj = static_cast<T*>(obj);
+    delete T_obj;
 }
+
+template <class T>
+NativeBind *bind(v8::Isolate* isolate, v8::Local<v8::Object> handle, T* obj) {
+    return new NativeBind(isolate, handle, obj, nativeBindDeleteCallback<T>);
+}
+
 } // namespace reba::engine
 
 #endif

@@ -10,37 +10,37 @@ namespace reba
     {
         if (privileged)
         {
-            CreateWorker();
+            createWorker();
         }
         it = workers_.begin();
     }
 
-    void WorkerGroup::RegisterWorker(Worker *new_worker)
+    void WorkerGroup::registerWorker(Worker *new_worker)
     {
         workers_.push_back(new_worker);
     }
 
-    Worker *WorkerGroup::CreateWorker()
+    Worker *WorkerGroup::createWorker()
     {
         Worker *ret;
         int count = this->privileged? 1 : 8;
         for(int i = 0; i < count; i++) {
             auto new_worker = new Worker(this);
-            RegisterWorker(new_worker);
+            registerWorker(new_worker);
             ret = new_worker;
         }
         return ret;
     }
 
-    size_t WorkerGroup::Size()
+    size_t WorkerGroup::size()
     {
         return workers_.size();
     }
 
-    Worker *WorkerGroup::SelectOrCreateWorker() {
+    Worker *WorkerGroup::selectOrCreateWorker() {
         Worker *selected_worker;
         
-        if (Size() > 0)
+        if (size() > 0)
         {
             if(it == workers_.end()) {
                 it = workers_.begin();
@@ -50,7 +50,7 @@ namespace reba
         }
         else
         {
-            selected_worker = CreateWorker();
+            selected_worker = createWorker();
         }
         return selected_worker;
     }
