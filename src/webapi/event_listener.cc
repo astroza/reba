@@ -28,8 +28,8 @@ namespace event {
             auto found = eventMap.find(std::string_view(*event_type));
             if (found != eventMap.end()) {
                 auto worker = static_cast<reba::Worker*>(isolate->GetData(reba::IsolateDataIndex::Value::Worker));
-                auto fetch_callback = v8::Local<v8::Function>::Cast(args[1]);
-                worker->setCallback(static_cast<reba::WorkerCallbackIndex::Value>(found->second), fetch_callback);
+                auto event_callback = v8::Local<v8::Function>::Cast(args[1]);
+                worker->setCallback(static_cast<reba::WorkerCallbackIndex::Value>(found->second), event_callback);
             }
         }
     }
