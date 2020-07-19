@@ -8,7 +8,11 @@ namespace reba::engine {
 extern std::unique_ptr<v8::Platform> g_platform;
 extern v8::Isolate::CreateParams g_create_params;
 
-v8::Local<v8::Context> createContext(v8::Isolate* isolate, bool privileged);
+struct ContextConfig {
+    bool privileged;
+};
+
+v8::Local<v8::Context> createContext(v8::Isolate* isolate, ContextConfig config);
 void init();
 void destroy();
 const char* utf8_value_to_cstring(const v8::String::Utf8Value& value);

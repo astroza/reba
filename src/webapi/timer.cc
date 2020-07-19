@@ -41,6 +41,7 @@ void constructor(const v8::FunctionCallbackInfo<v8::Value> &args)
     {
         v8::HandleScope handle_scope(isolate);
         v8::TryCatch try_catch(isolate);
+        
         auto timer_obj = timer_bind->getObjectHandle(isolate);
         auto callback = timer_obj->GetPrivate(isolate->GetCurrentContext(), worker->getAPIPrivateKey(reba::WorkerAPIPrivateKeyIndex::Value::TimerCallback).ToLocalChecked()).ToLocalChecked();
         auto callback_as_function = v8::Local<v8::Function>::Cast(callback);

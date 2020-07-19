@@ -50,7 +50,7 @@ void Worker::run()
     {
         v8::Isolate::Scope isolate_scope(isolate_);
         v8::HandleScope handle_scope(isolate_);
-        v8::Local<v8::Context> context = reba::engine::createContext(isolate_, worker_group_->privileged);
+        v8::Local<v8::Context> context = reba::engine::createContext(isolate_, { .privileged = worker_group_->isPrivileged() });
         v8::Context::Scope context_scope(context);
 
         isolate_->SetData(IsolateDataIndex::Value::Worker, this);
@@ -84,40 +84,31 @@ void Worker::run()
                     reba::engine::report_exception(isolate_, &try_catch);
                 return;
             }
-            else
-            {
-                assert(!try_catch.HasCaught());
-                if (0)
-                {
-                    // If all went well and the result wasn't undefined then print
-                    // the returned value.
-                    v8::String::Utf8Value str(isolate_, result);
-                    const char *cstr = reba::engine::utf8_value_to_cstring(str);
-                    printf("%s\n", cstr);
-                }
-            }
         }
         while (io_context_.run_one() > 0)
         {
-            isolate_->LowMemoryNotification();
+            //isolate_->LowMemoryNotification();
             while (v8::platform::PumpMessageLoop(reba::engine::g_platform.get(), isolate_))
                 continue;
         }
     }
+    isolate_->Dispose();
 }
 
 void Worker::continueRequestProcessing(reba::http::Session &session)
 {
     // ActiveSession active_session(&session, this);
     v8::HandleScope handle_scope(isolate_);
-    auto context = v8::Context::New(isolate_);
-    context->Enter();
+    auto context = isolate_->GetCurrentContext();
     auto maybe_callback = getCallback(WorkerCallbackIndex::Value::FetchEvent);
     if (!maybe_callback.IsEmpty())
     {
         auto fetch_callback = v8::Local<v8::Function>::Cast(maybe_callback.ToLocalChecked());
-        auto response = fetch_callback->Call(context, context->Global(), 0, nullptr);
         
+        //g_monitor.setExecutionTimeout(this, 50, reba::engine::stopExecution);
+        auto response = fetch_callback->Call(context, context->Global(), 0, nullptr);
+        //g_monitor.clearExecutionTimeout(this);
+
         v8::String::Utf8Value str(isolate_, response.ToLocalChecked());
 
         ::http::response<::http::string_body> res{::http::status::ok, 11};
@@ -129,7 +120,6 @@ void Worker::continueRequestProcessing(reba::http::Session &session)
         res.prepare_payload();
         session.send(std::move(res));
     }
-    context->Exit();
 }
 } // namespace reba
   // isolate_->VisitHandlesWithClassIds( &phv );

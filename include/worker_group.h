@@ -17,11 +17,13 @@ public:
     WorkerGroup(std::string script_source, bool privileged = false);
     Worker *createWorker();
     Worker *selectOrCreateWorker();
+    bool isPrivileged();
     size_t size();
     std::string script_source;
-    bool privileged;
+    
 private:
     void registerWorker(Worker *new_worker);
+    bool privileged_;
     std::list<Worker *> workers_;
     std::list<Worker *>::iterator it;
 };

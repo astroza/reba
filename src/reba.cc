@@ -7,11 +7,11 @@ namespace reba::engine {
 std::unique_ptr<v8::Platform> g_platform;
 v8::Isolate::CreateParams g_create_params;
 
-v8::Local<v8::Context> createContext(v8::Isolate* isolate, bool privileged)
+v8::Local<v8::Context> createContext(v8::Isolate* isolate, ContextConfig config)
 {
     v8::Local<v8::ObjectTemplate> global = v8::ObjectTemplate::New(isolate);
     webapi::init_global(isolate, global);
-    if (privileged) {
+    if (config.privileged) {
         rebaapi::init_global(isolate, global);
     }
     webapi::Console* console = static_cast<webapi::Console*>(isolate->GetData(IsolateDataIndex::Value::Console));

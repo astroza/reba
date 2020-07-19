@@ -6,7 +6,7 @@
 namespace reba
 {
     WorkerGroup::WorkerGroup(std::string script_source,
-                             bool privileged) : script_source(script_source), privileged(privileged)
+                             bool privileged) : script_source(script_source), privileged_(privileged)
     {
         if (privileged)
         {
@@ -23,7 +23,7 @@ namespace reba
     Worker *WorkerGroup::createWorker()
     {
         Worker *ret;
-        int count = this->privileged? 1 : 8;
+        int count = this->privileged_? 1 : 8;
         for(int i = 0; i < count; i++) {
             auto new_worker = new Worker(this);
             registerWorker(new_worker);
@@ -53,5 +53,9 @@ namespace reba
             selected_worker = createWorker();
         }
         return selected_worker;
+    }
+
+    bool WorkerGroup::isPrivileged() {
+        return privileged_;
     }
 } // namespace reba
