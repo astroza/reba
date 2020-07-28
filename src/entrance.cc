@@ -31,7 +31,8 @@ awaitable<void> reba::http::Server::DoSession(
     beast::tcp_stream stream)
 {
     auto executor = co_await this_coro::executor;
-    reba::http::Session session = { .stream_ = std::move(stream), .cue_ = boost::asio::steady_timer(executor, std::chrono::steady_clock::now() + std::chrono::hours(24 * 7)) };
+    reba::http::Session session = { .stream_ = std::move(stream),
+        .cue_ = boost::asio::steady_timer(executor, std::chrono::steady_clock::time_point::max()) };
     for (;;) {
         beast::http::request_parser<beast::http::empty_body> req_stage_0_;
         stream.expires_after(std::chrono::seconds(30));
@@ -57,11 +58,11 @@ awaitable<void> reba::http::Server::DoSession(
         try {
             co_await session.cue_.async_wait(use_awaitable);
         } catch (const boost::system::system_error& se) {
-            if(se.code() != boost::asio::error::operation_aborted) {
+            if (se.code() != boost::asio::error::operation_aborted) {
                 // reba::log::print(reba::log::error, &session, se.what());
             }
         }
-        if(!session.request_.keep_alive()) {
+        if (!session.request_.keep_alive()) {
             break;
         }
     }
@@ -70,7 +71,7 @@ awaitable<void> reba::http::Server::DoSession(
 }
 
 awaitable<void> reba::http::Server::Listen(
-    tcp::acceptor &root_acceptor)
+    tcp::acceptor& root_acceptor)
 {
     auto executor = co_await this_coro::executor;
     auto acceptor = tcp::acceptor(executor, root_acceptor.local_endpoint().protocol(), root_acceptor.native_handle());
@@ -108,8 +109,8 @@ int reba::http::Server::Start(boost::asio::ip::address listen_address, unsigned 
     };
 
     /**
-     * io_context shared to many threads has a issue when using coroutines and timer.cancel(),
-     * so now I share just the underlying listen socket
+     * io_context shared to many threads has an issue when coroutines are used, and timer.cancel() is called
+     * from another entrance thread, so now I just share the underlying listen socket (acceptor's native handle).
      */
     for (int i = 0; i < threads_ - 1; i++) {
         threads_vector.emplace_back(thread_main);
