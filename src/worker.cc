@@ -88,6 +88,7 @@ bool Worker::isExecutionTimedout()
 {
     bool previous = execution_timedout_;
     execution_timedout_ = false;
+    isolate_->CancelTerminateExecution();
     return previous;
 }
 
@@ -146,20 +147,24 @@ void Worker::continueRequestProcessing(reba::http::Session& session)
         setExecutionTimeout(std::chrono::milliseconds(50));
         auto response = fetch_callback->Call(context, context->Global(), 0, nullptr);
         clearExecutionTimeout();
-        if(isExecutionTimedout()) {
+        bool timedout = isExecutionTimedout();
+        if(timedout)
+        {
             // Print errors that happened during execution.
             puts("Execution is out of time");
-            return;
         }
-
-        v8::String::Utf8Value str(isolate_, response.ToLocalChecked());
 
         ::http::response<::http::string_body> res { ::http::status::ok, 11 };
 
         res.set(::http::field::server, BOOST_BEAST_VERSION_STRING);
         res.set(::http::field::content_type, "text/html");
         res.keep_alive(false);
-        res.body() = std::string(*str);
+        if(!timedout) {
+            v8::String::Utf8Value str(isolate_, response.ToLocalChecked());
+            res.body() = std::string(*str);
+        } else {
+            res.body() = std::string("Timeout");
+        }
         res.prepare_payload();
         session.send(std::move(res));
     }
