@@ -1,27 +1,8 @@
 #include <engine.h>
-#include <rebaapi.h>
-#include <webapi.h>
-#include <worker.h>
 
 namespace reba::engine {
 std::unique_ptr<v8::Platform> g_platform;
 v8::Isolate::CreateParams g_create_params;
-
-v8::Local<v8::Context> createContext(v8::Isolate* isolate, ContextConfig config)
-{
-    v8::Local<v8::ObjectTemplate> global = v8::ObjectTemplate::New(isolate);
-    webapi::init_global(isolate, global);
-    if (config.privileged) {
-        rebaapi::init_global(isolate, global);
-    }
-    webapi::Console* console = static_cast<webapi::Console*>(isolate->GetData(IsolateDataIndex::Value::Console));
-    if (!console) {
-        console = new webapi::Console(isolate);
-        isolate->SetData(IsolateDataIndex::Value::Console, console);
-        v8::debug::SetConsoleDelegate(isolate, console);
-    }
-    return v8::Context::New(isolate, NULL, global);
-}
 
 void init()
 {

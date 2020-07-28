@@ -52,7 +52,7 @@ void constructor(const v8::FunctionCallbackInfo<v8::Value> &args)
     });
 }
 
-v8::Local<v8::FunctionTemplate> function_template(v8::Isolate *isolate)
+v8::Local<v8::FunctionTemplate> functionTemplate(v8::Isolate *isolate)
 {
     v8::EscapableHandleScope handle_scope(isolate);
     v8::Local<v8::FunctionTemplate> func_tmpl = v8::FunctionTemplate::New(isolate, constructor);

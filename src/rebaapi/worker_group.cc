@@ -1,6 +1,5 @@
 #include <rebaapi.h>
 #include <worker_group.h>
-
 #include <iostream>
 
 namespace rebaapi
@@ -20,7 +19,7 @@ void constructor(const v8::FunctionCallbackInfo<v8::Value> &args)
     reba::engine::bind(isolate, args.This(), worker_group);
 }
 
-v8::Local<v8::FunctionTemplate> function_template(v8::Isolate *isolate)
+v8::Local<v8::FunctionTemplate> functionTemplate(v8::Isolate *isolate)
 {
     v8::EscapableHandleScope handle_scope(isolate);
     auto func_tmpl = v8::FunctionTemplate::New(isolate, constructor);

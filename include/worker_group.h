@@ -1,31 +1,59 @@
 #ifndef __WORKER_GROUP_H__
 #define __WORKER_GROUP_H__
 
-#include <list>
-#include <boost/thread/thread.hpp>
-#include <boost/asio/io_context.hpp>
+#include <boost/asio/co_spawn.hpp>
+#include <boost/asio/detached.hpp>
 #include <boost/asio/executor_work_guard.hpp>
+#include <boost/asio/io_context.hpp>
+#include <boost/thread/shared_mutex.hpp>
+#include <boost/thread/thread.hpp>
+#include <list>
+
 #include <engine.h>
 
-namespace reba
-{
-class Worker;
+using boost::asio::awaitable;
 
-class WorkerGroup
-{
+
+
+namespace reba {
+
+class Worker;
+class WorkerGroup : boost::thread {
 public:
     WorkerGroup(std::string script_source, bool privileged = false);
-    Worker *createWorker();
-    Worker *selectOrCreateWorker();
+    Worker* createWorker();
+    Worker* selectOrCreateWorker();
     bool isPrivileged();
     size_t size();
-    std::string script_source;
+    void runPatrol();
     
+    std::string script_source;
+    boost::asio::io_context io_context_;
+
+    static constexpr int workers_count_max = 64;
 private:
-    void registerWorker(Worker *new_worker);
+    awaitable<void> checkWorkers();
+    void registerWorker(Worker* new_worker);
+    Worker* selectWorker();
+
     bool privileged_;
-    std::list<Worker *> workers_;
-    std::list<Worker *>::iterator it;
+    boost::asio::executor_work_guard<boost::asio::io_context::executor_type> keep_running_;
+    /** 
+     * workers_ type reasoning:
+     *   What I know:
+     *     1) workers_ modification frequency (add/remove) will be lesser than
+     *     read frequency
+     *     2) Random access to workers_ is expected
+     *   If I choose std::array:
+     *     a) workers_ modification complexity is O(n)
+     *     b) workers_ random read is O(1)
+     *   If I choose std::list
+     *     a) workers_ modification complexity is O(n)
+     *     b) workers_ random read is O(n)
+     */
+    std::array<Worker*, workers_count_max> workers_;
+    int workers_length_;
+    boost::shared_mutex workers_shared_mutex_;
 };
 } // namespace reba
 #endif

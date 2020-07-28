@@ -26,26 +26,11 @@ namespace http
 {
 struct Session
 {
-    beast::http::request_parser<beast::http::empty_body> req_stage_0_;
+    beast::http::message<true, beast::http::empty_body, beast::http::fields> request_;
     beast::tcp_stream stream_;
     beast::flat_buffer buffer_;
-    net::detail::awaitable_handler<net::executor> *handler_;
-    const net::executor &executor_;
     ::http::response<::http::string_body> response_;
-
-    auto waitCue() {
-        return [&handler = this->handler_](auto *frame) {
-            handler = new net::detail::awaitable_handler<net::executor>(frame->detach_thread());
-            return static_cast<net::detail::awaitable_thread<net::executor> *>(nullptr);
-        };
-    }
-
-    void setCue() {
-        boost::asio::post(executor_, [handler = this->handler_]() {
-            (*handler)();
-            free(handler);
-        });
-    }
+    boost::asio::steady_timer cue_;
    // This is the C++11 equivalent of a generic lambda.
     // The function object is used to send an HTTP message.
     struct send_lambda
@@ -69,7 +54,9 @@ struct Session
                 session.stream_,
                 *sp, beast::bind_front_handler(
                 [&session](boost::system::error_code& err, std::size_t sz) {
-                    session.setCue();
+                    boost::asio::post(session.cue_.get_executor(), [&session]() {
+                        session.cue_.cancel();
+                    });
                 }));
         }
     };
@@ -86,12 +73,11 @@ class Server
     public:
         Server(reba::Router *router);
         int Start(net::ip::address listen_address, unsigned short listen_port);
-        awaitable<void> Listen(tcp::endpoint endpoint);
+        awaitable<void> Listen(tcp::acceptor &root_acceptor);
         awaitable<void> DoSession(beast::tcp_stream stream);
     private:
         int threads_;
         reba::Router *router_;
-        std::unique_ptr<boost::asio::io_context> io_context_;
     };
 } // namespace http
 } // namespace reba

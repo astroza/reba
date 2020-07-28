@@ -41,14 +41,14 @@ private:
 namespace timer
 {
 void constructor(const v8::FunctionCallbackInfo<v8::Value> &args);
-v8::Local<v8::FunctionTemplate> function_template(v8::Isolate *isolate);
+v8::Local<v8::FunctionTemplate> functionTemplate(v8::Isolate *isolate);
 void set_timeout(const v8::FunctionCallbackInfo<v8::Value> &args);
 } // namespace timer
 namespace event
 {
 void addEventListener(const v8::FunctionCallbackInfo<v8::Value> &args);
 }
-void init_global(v8::Isolate *isolate, v8::Local<v8::ObjectTemplate> &global);
+void initGlobal(v8::Isolate *isolate, v8::Local<v8::ObjectTemplate> &global);
 } // namespace webapi
 
 #endif

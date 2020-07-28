@@ -1,5 +1,6 @@
 
 #include <iostream>
+#include <ctime>
 #include <boost/asio.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/asio/ip/address.hpp>
@@ -15,8 +16,8 @@ int main(int argc, char* argv[])
 		std::cerr << "Usage: reba <governator script file> <port>\n";
 		return 1;
 	}
-
 	reba::engine::init();
+    std::srand(std::time(nullptr));
 	std::ifstream gov_script_file { argv[1] };
 	std::string gov_script { std::istreambuf_iterator<char>(gov_script_file), std::istreambuf_iterator<char>() };
     auto http_server = reba::http::Server(&rebaapi::router::g_default_router);

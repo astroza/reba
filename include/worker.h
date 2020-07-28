@@ -36,6 +36,7 @@ typedef enum
 {
     Worker = 0,
     Console,
+    FirstWorkerContextCreated,
     Max
 } Value;
 };
@@ -64,6 +65,7 @@ public:
     void run();
     void continueRequestProcessing(reba::http::Session &session);
     void setCallback(WorkerCallbackIndex::Value idx, v8::Local<v8::Function> &func);
+    v8::Local<v8::Context> createContext();
     v8::MaybeLocal<v8::Function> getCallback(WorkerCallbackIndex::Value idx);
     v8::MaybeLocal<v8::Private> getAPIPrivateKey(WorkerAPIPrivateKeyIndex::Value idx);
     boost::asio::io_context io_context_;

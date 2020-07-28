@@ -2,15 +2,14 @@
 #include <engine.h>
 #include <worker_group.h>
 #include <worker.h>
+#include <rebaapi.h>
+#include <webapi.h>
 
 namespace beast = boost::beast;   // from <boost/beast.hpp>
 namespace http = beast::http;           // from <boost/beast/http.hpp>
 
 namespace reba
 {
-bool report_exceptions = true;
-bool print_result = true;
-
 // it must be called after root HandleScope creation
 void Worker::initAPIPrivateKeys(v8::Isolate *isolate)
 {
@@ -38,6 +37,27 @@ v8::MaybeLocal<v8::Function> Worker::getCallback(WorkerCallbackIndex::Value idx)
     return registered_callbacks_[idx].Get(isolate_);
 }
 
+v8::Local<v8::Context> Worker::createContext()
+{
+    if(isolate_->GetData(IsolateDataIndex::Value::FirstWorkerContextCreated)) {
+        // An worker context was already created and a new Context will be based on it.
+        return v8::Context::New(isolate_);
+    }
+    v8::Local<v8::ObjectTemplate> global_template = v8::ObjectTemplate::New(isolate_);
+    webapi::initGlobal(isolate_, global_template);
+    if (worker_group_->isPrivileged()) {
+        rebaapi::initGlobal(isolate_, global_template);
+    }
+    webapi::Console* console = static_cast<webapi::Console*>(isolate_->GetData(IsolateDataIndex::Value::Console));
+    if (!console) {
+        console = new webapi::Console(isolate_);
+        isolate_->SetData(IsolateDataIndex::Value::Console, console);
+        v8::debug::SetConsoleDelegate(isolate_, console);
+    }
+    isolate_->SetData(IsolateDataIndex::Value::FirstWorkerContextCreated, isolate_);
+    return v8::Context::New(isolate_, NULL, global_template);
+}
+
 Worker::Worker(WorkerGroup *worker_group) : worker_group_(worker_group), keep_running_(boost::asio::make_work_guard(io_context_))
 {
     thread(&Worker::run, this);
@@ -50,7 +70,7 @@ void Worker::run()
     {
         v8::Isolate::Scope isolate_scope(isolate_);
         v8::HandleScope handle_scope(isolate_);
-        v8::Local<v8::Context> context = reba::engine::createContext(isolate_, { .privileged = worker_group_->isPrivileged() });
+        v8::Local<v8::Context> context = createContext();
         v8::Context::Scope context_scope(context);
 
         isolate_->SetData(IsolateDataIndex::Value::Worker, this);
@@ -68,9 +88,7 @@ void Worker::run()
         v8::String::NewFromUtf8(isolate_, worker_group_->script_source.c_str(), v8::NewStringType::kNormal, static_cast<int>(worker_group_->script_source.size())).ToLocal(&source);
         if (!v8::Script::Compile(context, source, &origin).ToLocal(&script))
         {
-            // Print errors that happened during compilation.
-            if (report_exceptions)
-                reba::engine::report_exception(isolate_, &try_catch);
+            reba::engine::report_exception(isolate_, &try_catch);
             return;
         }
         else
@@ -80,8 +98,7 @@ void Worker::run()
             {
                 assert(try_catch.HasCaught());
                 // Print errors that happened during execution.
-                if (report_exceptions)
-                    reba::engine::report_exception(isolate_, &try_catch);
+                reba::engine::report_exception(isolate_, &try_catch);
                 return;
             }
         }
@@ -99,15 +116,16 @@ void Worker::continueRequestProcessing(reba::http::Session &session)
 {
     // ActiveSession active_session(&session, this);
     v8::HandleScope handle_scope(isolate_);
-    auto context = isolate_->GetCurrentContext();
+    auto context = createContext();
+    v8::Context::Scope scope(context);
     auto maybe_callback = getCallback(WorkerCallbackIndex::Value::FetchEvent);
     if (!maybe_callback.IsEmpty())
     {
         auto fetch_callback = v8::Local<v8::Function>::Cast(maybe_callback.ToLocalChecked());
         
-        //g_monitor.setExecutionTimeout(this, 50, reba::engine::stopExecution);
+        //g_patrol.setExecutionTimeout(this, 50);
         auto response = fetch_callback->Call(context, context->Global(), 0, nullptr);
-        //g_monitor.clearExecutionTimeout(this);
+        //g_patrol.clearExecutionTimeout(this);
 
         v8::String::Utf8Value str(isolate_, response.ToLocalChecked());
 

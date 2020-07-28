@@ -8,7 +8,7 @@ namespace router
 {
 reba::Router g_default_router;
 
-v8::Local<v8::ObjectTemplate> object_template(v8::Isolate *isolate)
+v8::Local<v8::ObjectTemplate> objectTemplate(v8::Isolate *isolate)
 {
     v8::EscapableHandleScope handle_scope(isolate);
     auto obj_tmpl = v8::ObjectTemplate::New(isolate);
