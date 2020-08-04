@@ -74,14 +74,16 @@ awaitable<void> WorkerGroup::checkWorkers()
     for (;;) {
         boost::asio::steady_timer timer(io_context_, std::chrono::steady_clock::now() + patrol_sampling_period);
         co_await timer.async_wait(use_awaitable);
+        boost::chrono::duration<long double, boost::nano> usage(0.0);
         for(int i = 0; i < workers_length_; i++) {
             auto cpuTime = platform::threadCPUTime(workers_[i]->native_handle());
-            auto usage = (cpuTime - lastCPUTime[i]) * 1.0;
+            usage += (cpuTime - lastCPUTime[i]) * 1.0;
             lastCPUTime[i] = cpuTime;
-            if(usage.count() > patrol_scale_up_threshold.count()) {
-                if(workers_length_ < std::thread::hardware_concurrency()) {
-                    createWorker();
-                }
+        }
+        usage /= (double)workers_length_;
+        if(usage.count() > patrol_scale_up_threshold.count()) {
+            if(workers_length_ < std::thread::hardware_concurrency()) {
+                createWorker();
             }
         }
     }
