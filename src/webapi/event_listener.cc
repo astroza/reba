@@ -29,6 +29,7 @@ namespace event {
             if (found != eventMap.end()) {
                 auto worker = static_cast<reba::Worker*>(isolate->GetData(reba::IsolateDataIndex::Value::Worker));
                 auto event_callback = v8::Local<v8::Function>::Cast(args[1]);
+                // TODO: change from setCallback to addCallback
                 worker->setCallback(static_cast<reba::WorkerCallbackIndex::Value>(found->second), event_callback);
             }
         }

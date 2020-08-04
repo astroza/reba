@@ -31,6 +31,9 @@ public:
     boost::asio::io_context io_context_;
 
     static constexpr int workers_count_max = 64;
+    static constexpr double threshold_ratio = 0.75;
+    static constexpr auto patrol_sampling_period = std::chrono::seconds(4);
+    static constexpr auto patrol_scale_up_threshold = std::chrono::duration_cast<std::chrono::duration<long double, std::nano>>(patrol_sampling_period) * threshold_ratio;
 private:
     awaitable<void> checkWorkers();
     void registerWorker(Worker* new_worker);

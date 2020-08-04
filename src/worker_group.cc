@@ -5,10 +5,13 @@
 #include <worker.h>
 #include <worker_group.h>
 
+#include <platform.h>
+
 using boost::asio::awaitable;
 using boost::asio::co_spawn;
 using boost::asio::detached;
 using boost::asio::use_awaitable;
+using boost::chrono::thread_clock;
 
 namespace reba {
 WorkerGroup::WorkerGroup(std::string script_source,
@@ -34,14 +37,9 @@ void WorkerGroup::registerWorker(Worker* new_worker)
 
 Worker* WorkerGroup::createWorker()
 {
-    Worker* ret;
-    int count = this->privileged_ ? 1 : 8;
-    for (int i = 0; i < count; i++) {
-        auto new_worker = new Worker(this);
-        registerWorker(new_worker);
-        ret = new_worker;
-    }
-    return ret;
+    auto new_worker = new Worker(this); 
+    registerWorker(new_worker);
+    return new_worker;
 }
 
 size_t WorkerGroup::size()
@@ -71,10 +69,21 @@ bool WorkerGroup::isPrivileged()
 
 awaitable<void> WorkerGroup::checkWorkers()
 {
+    thread_clock::time_point lastCPUTime[workers_count_max];
+
     for (;;) {
-        puts("Patrol");
-        boost::asio::steady_timer timer(io_context_, std::chrono::steady_clock::now() + std::chrono::seconds(4));
+        boost::asio::steady_timer timer(io_context_, std::chrono::steady_clock::now() + patrol_sampling_period);
         co_await timer.async_wait(use_awaitable);
+        for(int i = 0; i < workers_length_; i++) {
+            auto cpuTime = platform::threadCPUTime(workers_[i]->native_handle());
+            auto usage = (cpuTime - lastCPUTime[i]) * 1.0;
+            lastCPUTime[i] = cpuTime;
+            if(usage.count() > patrol_scale_up_threshold.count()) {
+                if(workers_length_ < std::thread::hardware_concurrency()) {
+                    createWorker();
+                }
+            }
+        }
     }
 }
 

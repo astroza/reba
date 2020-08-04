@@ -1,6 +1,8 @@
-#ifndef __WORKER_H__
-#define __WORKER_H__
+#pragma once
 
+#ifdef __APPLE__
+#include <mach/mach.h>
+#endif
 #include <boost/thread/thread.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/executor_work_guard.hpp>
@@ -58,7 +60,7 @@ class ActiveSession
     }
 };
 
-class Worker : boost::thread
+class Worker : public boost::thread
 {
 public:
     Worker(WorkerGroup *wg);
@@ -69,18 +71,17 @@ public:
     v8::MaybeLocal<v8::Function> getCallback(WorkerCallbackIndex::Value idx);
     v8::MaybeLocal<v8::Private> getAPIPrivateKey(WorkerAPIPrivateKeyIndex::Value idx);
     void setExecutionTimeout(std::chrono::milliseconds timeout_ms);
-    void clearExecutionTimeout();
-    bool isExecutionTimedout();
+    bool clearExecutionTimeout();
+    uint64_t getCPUTime();
     boost::asio::io_context io_context_;
-    boost::asio::steady_timer execution_timer_;
 private:
     v8::Isolate *isolate_;
     v8::Persistent<v8::Function> registered_callbacks_[WorkerCallbackIndex::Max];
     v8::MaybeLocal<v8::Private> api_private_keys_[WorkerAPIPrivateKeyIndex::Max];
     WorkerGroup *worker_group_;
     boost::asio::executor_work_guard<boost::asio::io_context::executor_type> keep_running_;
+    boost::asio::steady_timer execution_timer_;
     bool execution_timedout_;
     void initAPIPrivateKeys(v8::Isolate *isolate);
 };
 }
-#endif

@@ -4,6 +4,7 @@
 #include <webapi.h>
 #include <worker.h>
 #include <worker_group.h>
+#include <platform.h>
 
 namespace beast = boost::beast; // from <boost/beast.hpp>
 namespace http = beast::http; // from <boost/beast/http.hpp>
@@ -61,9 +62,8 @@ Worker::Worker(WorkerGroup* worker_group)
     , execution_timer_(boost::asio::steady_timer(worker_group->io_context_, std::chrono::steady_clock::time_point::max()))
     , keep_running_(boost::asio::make_work_guard(io_context_))
     , execution_timedout_(false)
+    , thread(&Worker::run, this)
 {
-    thread(&Worker::run, this);
-    detach();
 }
 
 void Worker::setExecutionTimeout(std::chrono::milliseconds timeout_ms)
@@ -77,16 +77,12 @@ void Worker::setExecutionTimeout(std::chrono::milliseconds timeout_ms)
     });
 }
 
-void Worker::clearExecutionTimeout() 
+bool Worker::clearExecutionTimeout() 
 {
+    bool previous = execution_timedout_;
     boost::asio::post(worker_group_->io_context_, [&timer = this->execution_timer_]() {
         timer.cancel();
     });
-}
-
-bool Worker::isExecutionTimedout()
-{
-    bool previous = execution_timedout_;
     execution_timedout_ = false;
     isolate_->CancelTerminateExecution();
     return previous;
@@ -144,10 +140,9 @@ void Worker::continueRequestProcessing(reba::http::Session& session)
     auto maybe_callback = getCallback(WorkerCallbackIndex::Value::FetchEvent);
     if (!maybe_callback.IsEmpty()) {
         auto fetch_callback = v8::Local<v8::Function>::Cast(maybe_callback.ToLocalChecked());
-        setExecutionTimeout(std::chrono::milliseconds(50));
+        setExecutionTimeout(std::chrono::milliseconds(500));
         auto response = fetch_callback->Call(context, context->Global(), 0, nullptr);
-        clearExecutionTimeout();
-        bool timedout = isExecutionTimedout();
+        bool timedout = clearExecutionTimeout();
         if(timedout)
         {
             // Print errors that happened during execution.
