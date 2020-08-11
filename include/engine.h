@@ -1,5 +1,4 @@
-#ifndef __LAKE_H__
-#define __LAKE_H__
+#pragma once
 
 #include <libplatform/libplatform.h>
 #include <v8.h>
@@ -20,12 +19,14 @@ public:
     void unref();
     void* getNativeObject();
     v8::Local<v8::Object> getObjectHandle(v8::Isolate* isolate);
+    v8::Local<v8::Context> getContext(v8::Isolate* isolate);
 
 private:
     unsigned int ref_count_;
     void* native_object_;
     void (*native_delete_callback_)(void*);
-    v8::Persistent<v8::Object> persistent_handle_;
+    v8::Persistent<v8::Object> handle_;
+    v8::Persistent<v8::Context> context_;
     static void weakCallback(const v8::WeakCallbackInfo<NativeBind>& data);
 };
 
@@ -42,5 +43,3 @@ NativeBind *bind(v8::Isolate* isolate, v8::Local<v8::Object> handle, T* obj) {
 }
 
 } // namespace reba::engine
-
-#endif

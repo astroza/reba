@@ -11,10 +11,10 @@ namespace http = beast::http; // from <boost/beast/http.hpp>
 
 namespace reba {
 // it must be called after root HandleScope creation
-void Worker::initAPIPrivateKeys(v8::Isolate* isolate)
+void Worker::initAPIPrivateKeys()
 {
-    api_private_keys_[WorkerAPIPrivateKeyIndex::Value::TimerCallback] = v8::Private::ForApi(isolate,
-        v8::String::NewFromUtf8(isolate, "timer::callback").ToLocalChecked());
+    api_private_keys_[WorkerAPIPrivateKeyIndex::Value::TimerCallback] = v8::Private::ForApi(isolate_,
+        v8::String::NewFromUtf8(isolate_, "timer::callback").ToLocalChecked());
 }
 
 v8::MaybeLocal<v8::Private> Worker::getAPIPrivateKey(WorkerAPIPrivateKeyIndex::Value idx)
@@ -66,39 +66,64 @@ Worker::Worker(WorkerGroup* worker_group)
 {
 }
 
-void Worker::setExecutionTimeout(std::chrono::milliseconds timeout_ms)
+void Worker::setExecutionTimeout(std::chrono::milliseconds timeout)
 {
-    execution_timer_.expires_from_now(timeout_ms);
+    execution_timer_.expires_from_now(timeout);
+    execution_timedout_ = false;
     execution_timer_.async_wait([isolate = this->isolate_, &timedout = this->execution_timedout_](const boost::system::error_code &ec) {
         if(!ec.failed()) {
             isolate->TerminateExecution();
+            isolate->GetCurrentContext()->SetAbortScriptExecution([](v8::Isolate* isolate, v8::Local<v8::Context> context) {
+                puts("this context was interrupted");
+            });
             timedout = true;
         }
     });
 }
 
-bool Worker::clearExecutionTimeout() 
+void Worker::clearExecutionTimeout() 
 {
-    bool previous = execution_timedout_;
     boost::asio::post(worker_group_->io_context_, [&timer = this->execution_timer_]() {
         timer.cancel();
     });
-    execution_timedout_ = false;
-    isolate_->CancelTerminateExecution();
-    return previous;
+    if(execution_timedout_) {
+        isolate_->CancelTerminateExecution();
+    }
+}
+
+bool Worker::isExecutionTimedout() 
+{
+    return execution_timedout_;
+}
+
+void Worker::initIsolate()
+{
+    isolate_ = v8::Isolate::New(reba::engine::g_create_params);
+    isolate_->SetData(IsolateDataIndex::Value::Worker, this);
+    /**
+     * Execution timer: Stop JS if execution exceeds the limit
+     * TODO: Decrease consumed time by call from session
+     */
+    isolate_->AddBeforeCallEnteredCallback([](v8::Isolate *isolate) {
+        auto worker = static_cast<Worker *>(isolate->GetData(IsolateDataIndex::Value::Worker));
+        worker->setExecutionTimeout(std::chrono::milliseconds(50));
+    });
+    isolate_->AddCallCompletedCallback([](v8::Isolate *isolate) {
+        auto worker = static_cast<Worker *>(isolate->GetData(IsolateDataIndex::Value::Worker));
+        worker->clearExecutionTimeout();
+    });
 }
 
 void Worker::run()
 {
-    isolate_ = v8::Isolate::New(reba::engine::g_create_params);
+    initIsolate();
     {
         v8::Isolate::Scope isolate_scope(isolate_);
         v8::HandleScope handle_scope(isolate_);
         v8::Local<v8::Context> context = createContext();
         v8::Context::Scope context_scope(context);
 
-        isolate_->SetData(IsolateDataIndex::Value::Worker, this);
-        initAPIPrivateKeys(isolate_);
+        initAPIPrivateKeys();
 
         v8::TryCatch try_catch(isolate_);
         v8::Local<v8::String> script_name = v8::String::NewFromUtf8(isolate_, "worker.js",
@@ -140,25 +165,16 @@ void Worker::continueRequestProcessing(reba::http::Session& session)
     auto maybe_callback = getCallback(WorkerCallbackIndex::Value::FetchEvent);
     if (!maybe_callback.IsEmpty()) {
         auto fetch_callback = v8::Local<v8::Function>::Cast(maybe_callback.ToLocalChecked());
-        setExecutionTimeout(std::chrono::milliseconds(500));
         auto response = fetch_callback->Call(context, context->Global(), 0, nullptr);
-        bool timedout = clearExecutionTimeout();
-        if(timedout)
-        {
-            // Print errors that happened during execution.
-            puts("Execution is out of time");
-        }
-
         ::http::response<::http::string_body> res { ::http::status::ok, 11 };
-
         res.set(::http::field::server, BOOST_BEAST_VERSION_STRING);
         res.set(::http::field::content_type, "text/html");
         res.keep_alive(false);
-        if(!timedout) {
+        if(!isExecutionTimedout()) {
             v8::String::Utf8Value str(isolate_, response.ToLocalChecked());
             res.body() = std::string(*str);
         } else {
-            res.body() = std::string("Timeout");
+            res.body() = std::string("Timedout");
         }
         res.prepare_payload();
         session.send(std::move(res));

@@ -22,7 +22,8 @@ void destroy()
 NativeBind::NativeBind(v8::Isolate* isolate, v8::Local<v8::Object> handle, void* obj, void (*delete_callback)(void*))
 {
     handle->SetAlignedPointerInInternalField(0, this);
-    persistent_handle_.Reset(isolate, handle);
+    handle_.Reset(isolate, handle);
+    context_.Reset(isolate, isolate->GetCurrentContext());
     native_object_ = obj;
     native_delete_callback_ = delete_callback;
     ref_count_ = 1;
@@ -32,7 +33,7 @@ NativeBind::NativeBind(v8::Isolate* isolate, v8::Local<v8::Object> handle, void*
 void NativeBind::ref()
 {
     ref_count_++;
-    persistent_handle_.ClearWeak();
+    handle_.ClearWeak();
 }
 
 void NativeBind::unref()
@@ -40,7 +41,7 @@ void NativeBind::unref()
     if (ref_count_) {
         ref_count_--;
         if (ref_count_ == 0) {
-            persistent_handle_.SetWeak(this, weakCallback, v8::WeakCallbackType::kParameter);
+            handle_.SetWeak(this, weakCallback, v8::WeakCallbackType::kParameter);
         }
     }
 }
@@ -54,13 +55,19 @@ void NativeBind::weakCallback(const v8::WeakCallbackInfo<NativeBind>& data)
 {
     NativeBind* native_bind = data.GetParameter();
     native_bind->native_delete_callback_(native_bind->getNativeObject());
-    native_bind->persistent_handle_.Reset();
+    native_bind->handle_.Reset();
+    native_bind->context_.Reset();
     delete native_bind;
 }
 
 v8::Local<v8::Object> NativeBind::getObjectHandle(v8::Isolate* isolate)
 {
-    return persistent_handle_.Get(isolate);
+    return handle_.Get(isolate);
+}
+
+v8::Local<v8::Context> NativeBind::getContext(v8::Isolate* isolate)
+{
+    return context_.Get(isolate);
 }
 
 const char* utf8_value_to_cstring(const v8::String::Utf8Value& value)

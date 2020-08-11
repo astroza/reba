@@ -45,7 +45,7 @@ void constructor(const v8::FunctionCallbackInfo<v8::Value> &args)
         auto timer_obj = timer_bind->getObjectHandle(isolate);
         auto callback = timer_obj->GetPrivate(isolate->GetCurrentContext(), worker->getAPIPrivateKey(reba::WorkerAPIPrivateKeyIndex::Value::TimerCallback).ToLocalChecked()).ToLocalChecked();
         auto callback_as_function = v8::Local<v8::Function>::Cast(callback);
-        auto context = isolate->GetCurrentContext();
+        auto context = timer_bind->getContext(isolate);
         try_catch.SetVerbose(true);
         callback_as_function->Call(context, context->Global(), 0, nullptr);
         timer_bind->unref();

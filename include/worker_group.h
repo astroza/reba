@@ -11,9 +11,15 @@
 
 #include <engine.h>
 
+#ifndef WORKER_GROUP_MAX_SIZE
+#define WORKER_GROUP_MAX_SIZE 64
+#endif
+
+#ifndef WORKER_GROUP_PATROL_PERIOD
+#define WORKER_GROUP_PATROL_PERIOD 4
+#endif
+
 using boost::asio::awaitable;
-
-
 
 namespace reba {
 
@@ -30,9 +36,9 @@ public:
     std::string script_source;
     boost::asio::io_context io_context_;
 
-    static constexpr int workers_count_max = 64;
+    static constexpr int workers_count_max = WORKER_GROUP_MAX_SIZE;
     static constexpr double threshold_ratio = 0.75;
-    static constexpr auto patrol_sampling_period = std::chrono::seconds(4);
+    static constexpr auto patrol_sampling_period = std::chrono::seconds(WORKER_GROUP_PATROL_PERIOD);
     static constexpr auto patrol_scale_up_threshold = std::chrono::duration_cast<std::chrono::duration<long double, std::nano>>(patrol_sampling_period) * threshold_ratio;
 private:
     awaitable<void> checkWorkers();
@@ -57,6 +63,8 @@ private:
     std::array<Worker*, workers_count_max> workers_;
     int workers_length_;
     boost::shared_mutex workers_shared_mutex_;
+
+    friend class Worker;
 };
 } // namespace reba
 #endif
