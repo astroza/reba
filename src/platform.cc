@@ -1,4 +1,6 @@
+#ifdef __APPLE__
 #include <mach/thread_act.h>
+#endif
 #include <platform.h>
 
 using boost::chrono::thread_clock;
@@ -27,8 +29,8 @@ thread_clock::time_point threadCPUTime(boost::thread::native_handle_type handle)
         + static_cast<thread_clock::rep>(info.system_time.microseconds) * 1000);
 
     return thread_clock::time_point(user + system);
-#elif __LINUX__
-    return 0
+#elif __linux__
+    return thread_clock::time_point(duration(0));
 #endif
 }
 

@@ -1,11 +1,18 @@
 cmake_minimum_required(VERSION 3.15)
-project(Reba CXX)
-# -stdlib=libc++ is to avoid GCC c++ headers in Linux
-add_compile_options(-std=c++2a -fPIC -DV8_COMPRESS_POINTERS -O3 -fcoroutines-ts -stdlib=libc++)
-set(CMAKE_C_COMPILER clang)
+if(APPLE)
+	set(CMAKE_CXX_COMPILER clang++)
+	set(CMAKE_C_COMPILER clang)
+elseif(UNIX)
+	set(CMAKE_CXX_COMPILER g++)
+	set(CMAKE_C_COMPILER gcc)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fcoroutines")
+endif()
 set(CMAKE_C_COMPILER_TARGET ${triple})
-set(CMAKE_CXX_COMPILER clang++)
 set(CMAKE_CXX_COMPILER_TARGET ${triple})
+
+project(Reba CXX)
+
+add_compile_options(-std=c++2a -fPIC -DV8_COMPRESS_POINTERS -O3)
 
 file(GLOB core_source ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cc)
 file(GLOB webapi_source ${CMAKE_CURRENT_SOURCE_DIR}/src/webapi/*.cc)
@@ -34,36 +41,35 @@ include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/deps/v8/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/deps/v8)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/deps/v8/out/x64.release/gen)
-target_link_libraries(reba ${Boost_LIBRARIES})
-if(APPLE)
-elseif(UNIX)
-	target_link_options(reba PRIVATE -fuse-ld=lld -pie -Wl,--fatal-warnings -fPIC -Wl,-z,noexecstack -Wl,-z,relro -Wl,-z,now -Wl,-z,defs -Wl,--as-needed -m64 -Werror -rdynamic --sysroot=${CMAKE_CURRENT_SOURCE_DIR}/deps/v8/build/linux/debian_sid_amd64-sysroot -L${CMAKE_CURRENT_SOURCE_DIR}/deps/v8/build/linux/debian_sid_amd64-sysroot/usr/local/lib/x86_64-linux-gnu -L${CMAKE_CURRENT_SOURCE_DIR}/deps/v8/build/linux/debian_sid_amd64-sysroot/lib/x86_64-linux-gnu -L${CMAKE_CURRENT_SOURCE_DIR}/deps/v8/build/linux/debian_sid_amd64-sysroot/usr/lib/x86_64-linux-gnu -pie -Wl,--disable-new-dtags -Wl,-O2 -Wl,--gc-sections)
-endif()
 add_library(libv8 OBJECT IMPORTED)
 list(APPEND libv8_objs
-	obj/third_party/zlib/zlib_adler32_simd/adler32_simd.o
-	obj/third_party/zlib/zlib_inflate_chunk_simd/inffast_chunk.o
-	obj/third_party/zlib/zlib_inflate_chunk_simd/inflate.o
-	obj/third_party/zlib/zlib_crc32_simd/crc32_simd.o
-	obj/third_party/zlib/zlib_x86_simd/crc_folding.o
-	obj/third_party/zlib/zlib_x86_simd/fill_window_sse.o
-	obj/libv8_libbase.a
-	obj/libv8_libplatform.a
-	obj/libv8_base_without_compiler.a
-	obj/third_party/icu/libicui18n.a
-	obj/third_party/icu/libicuuc.a
-	obj/libtorque_generated_definitions.a
-	obj/libv8_libsampler.a
-	obj/src/inspector/libinspector.a
-	obj/src/inspector/libinspector_string_conversions.a
-	obj/third_party/inspector_protocol/libcrdtp.a
-	obj/third_party/inspector_protocol/libcrdtp_platform.a
-	obj/third_party/zlib/libchrome_zlib.a
-	obj/libv8_compiler.a
-	obj/libv8_snapshot.a
+obj/third_party/zlib/zlib_adler32_simd/adler32_simd.o
+obj/third_party/zlib/zlib_inflate_chunk_simd/inffast_chunk.o
+obj/third_party/zlib/zlib_inflate_chunk_simd/inflate.o
+obj/third_party/zlib/zlib_crc32_simd/crc32_simd.o
+obj/third_party/zlib/zlib_x86_simd/crc_folding.o
+obj/third_party/zlib/zlib_x86_simd/fill_window_sse.o
+obj/third_party/zlib/google/libcompression_utils_portable.a
+obj/third_party/zlib/libchrome_zlib.a
+obj/third_party/inspector_protocol/libcrdtp_platform.a
+obj/third_party/inspector_protocol/libcrdtp.a
+obj/third_party/icu/libicui18n.a
+obj/third_party/icu/libicuuc.a
+obj/libv8_snapshot.a
+obj/libv8_compiler.a
+obj/src/inspector/libinspector_string_conversions.a
+obj/src/inspector/libinspector.a
+obj/libv8_bigint.a
+obj/libtorque_generated_definitions.a
+obj/libv8_cppgc_shared.a
+obj/libcppgc_base.a
+obj/libv8_base_without_compiler.a
+obj/libv8_libplatform.a
+obj/libv8_libbase.a
 )
-list(TRANSFORM libv8_objs PREPEND ${CMAKE_CURRENT_SOURCE_DIR}/deps/v8/out/x64.release/)
 
+list(TRANSFORM libv8_objs PREPEND ${CMAKE_CURRENT_SOURCE_DIR}/deps/v8/out/x64.release/)
 set_target_properties(libv8 PROPERTIES IMPORTED_OBJECTS "${libv8_objs}")
-target_link_libraries(reba $<TARGET_OBJECTS:libv8>)
+# https://cmake.org/pipermail/cmake-developers/2015-January/024072.html
+target_link_libraries(reba -Wl,--start-group $<TARGET_OBJECTS:libv8> -Wl,--end-group ${Boost_LIBRARIES} dl)
 target_include_directories(reba PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
