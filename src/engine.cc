@@ -7,7 +7,6 @@ v8::Isolate::CreateParams g_create_params;
 void init()
 {
     v8::V8::InitializeICUDefaultLocation("reba");
-    v8::V8::InitializeExternalStartupData("snapshot_blob.bin");
     g_platform = v8::platform::NewDefaultPlatform();
     v8::V8::InitializePlatform(g_platform.get());
     v8::V8::Initialize();

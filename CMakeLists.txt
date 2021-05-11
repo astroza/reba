@@ -14,15 +14,16 @@ project(Reba CXX)
 
 add_compile_options(-std=c++2a -fPIC -DV8_COMPRESS_POINTERS -O3)
 
-file(GLOB core_source ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cc)
-file(GLOB webapi_source ${CMAKE_CURRENT_SOURCE_DIR}/src/webapi/*.cc)
-file(GLOB rebaapi_source ${CMAKE_CURRENT_SOURCE_DIR}/src/rebaapi/*.cc)
+file(GLOB core_cc_source ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cc)
+file(GLOB webapi_cc_source ${CMAKE_CURRENT_SOURCE_DIR}/src/webapi/*.cc)
+file(GLOB webapi_js_source ${CMAKE_CURRENT_SOURCE_DIR}/src/webapi/js/*.js)
+file(GLOB rebaapi_cc_source ${CMAKE_CURRENT_SOURCE_DIR}/src/rebaapi/*.cc)
 
-set(SOURCE_FILES ${core_source} ${webapi_source} ${rebaapi_source})
+set(SOURCE_FILES ${core_cc_source} ${webapi_cc_source} ${rebaapi_cc_source})
 
 add_custom_target(libv8_build
                   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tools
-                  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tools/build_v8.sh)
+                  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tools/build_v8.sh ${webapi_js_source})
 
 option(ENABLE_LIB_ONLY ON)
 option(ENABLE_EXAMPLES OFF)
