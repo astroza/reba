@@ -19,7 +19,7 @@ file(GLOB webapi_cc_source ${CMAKE_CURRENT_SOURCE_DIR}/src/webapi/*.cc)
 file(GLOB webapi_js_source ${CMAKE_CURRENT_SOURCE_DIR}/src/webapi/js/*.js)
 file(GLOB rebaapi_cc_source ${CMAKE_CURRENT_SOURCE_DIR}/src/rebaapi/*.cc)
 
-set(SOURCE_FILES ${core_cc_source} ${webapi_cc_source} ${rebaapi_cc_source})
+set(SOURCE_FILES ${core_cc_source} ${webapi_cc_source} ${rebaapi_cc_source} ${CMAKE_CURRENT_SOURCE_DIR}/src/snapshot_generated.cc)
 
 add_custom_target(libv8_build
                   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tools
